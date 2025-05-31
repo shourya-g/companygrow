@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchBadges, createBadge, deleteBadge } from '../services/api';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const Badges = () => {
   const [badges, setBadges] = useState([]);
@@ -54,11 +56,25 @@ const Badges = () => {
     }
   };
 
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    doc.text('Badges Report', 14, 16);
+    doc.autoTable({
+      startY: 22,
+      head: [['ID', 'Name', 'Description']],
+      body: badges.map(b => [b.id, b.name, b.description]),
+    });
+    doc.save('badges_report.pdf');
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Badges</h1>
         <p className="text-gray-600 mt-2">Browse and manage badges below.</p>
+        <button onClick={handleDownloadPDF} className="bg-green-600 text-white px-4 py-2 rounded mt-4">
+          Download PDF Report
+        </button>
       </div>
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <form onSubmit={handleCreate} className="flex flex-col md:flex-row gap-4 items-end">
