@@ -11,25 +11,25 @@
     "db:reset": "npx sequelize-cli db:drop && npx sequelize-cli db:create && npm run db:migrate && npm run db:seed"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "express": "^5.1.0",
     "cors": "^2.8.5",
-    "helmet": "^7.1.0",
-    "dotenv": "^16.3.1",
-    "bcryptjs": "^2.4.3",
+    "helmet": "^8.1.0",
+    "dotenv": "^16.5.0",
+    "bcryptjs": "^3.0.2",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.11.3",
+    "pg": "^8.16.0",
     "pg-hstore": "^2.3.4",
-    "sequelize": "^6.35.0",
-    "sequelize-cli": "^6.6.2",
-    "multer": "^1.4.5-lts.1",
-    "cloudinary": "^1.41.0",
-    "stripe": "^14.7.0",
-    "node-cron": "^3.0.3",
-    "express-rate-limit": "^7.1.5",
-    "express-validator": "^7.0.1",
+    "sequelize": "^6.37.7",
+    "sequelize-cli": "^6.6.3",
+    "multer": "^2.0.0",
+    "cloudinary": "^2.6.1",
+    "stripe": "^18.2.0",
+    "node-cron": "^4.0.7",
+    "express-rate-limit": "^7.5.0",
+    "express-validator": "^7.2.1",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.1.10"
   }
 }
