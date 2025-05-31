@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const sequelize = require('./config/database-connection');
 require('dotenv').config();
 
 const app = express();
@@ -58,6 +59,11 @@ app.use((err, req, res, next) => {
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
+});
+
+// Sync Sequelize models with the database
+sequelize.sync().then(() => {
+  console.log('Database synced');
 });
 
 app.listen(PORT, () => {

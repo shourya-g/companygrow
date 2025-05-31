@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const courseController = require('../controllers/courseController');
 
-// Placeholder routes for courses
-router.get('/', (req, res) => {
-  res.json({ message: 'courses routes - Coming soon!' });
-});
+// Real course routes using the new controller
+router.get('/', courseController.getAllCourses);
+router.get('/:id', courseController.getCourseById);
+// ...other course routes (create, update, delete, search, etc.)
 
 module.exports = router;

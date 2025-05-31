@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const userController = require('../controllers/userController');
 
-// Placeholder routes for users
-router.get('/', (req, res) => {
-  res.json({ message: 'users routes - Coming soon!' });
-});
+// Real user routes
+router.get('/', userController.getAllUsers);
+router.get('/:id', userController.getUserById);
+// ...other user routes (register, login, update, delete, etc.)
 
 module.exports = router;

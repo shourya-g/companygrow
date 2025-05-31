@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const badgeController = require('../controllers/badgeController');
 
-// Placeholder routes for badges
-router.get('/', (req, res) => {
-  res.json({ message: 'badges routes - Coming soon!' });
-});
+// Real badge routes using the new controller
+router.get('/', badgeController.getAllBadges);
+router.get('/:id', badgeController.getBadgeById);
+// ...other badge routes (create, update, delete, etc.)
 
 module.exports = router;
