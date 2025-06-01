@@ -45,5 +45,6 @@ export const fetchNotifications = () => api.get('/notifications');
 
 // PAYMENTS API
 export const fetchPayments = () => api.get('/payments');
+export const createPayout = (data) => api.post('/payments/payout', data);
 
 export default api;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchSkills, createSkill, deleteSkill } from '../services/api';
+import { useSelector } from 'react-redux';
 
 const Skills = () => {
   const [skills, setSkills] = useState([]);
@@ -7,17 +8,22 @@ const Skills = () => {
   const [error, setError] = useState(null);
   const [newSkill, setNewSkill] = useState({ name: '', description: '' });
   const [creating, setCreating] = useState(false);
+  const authUser = useSelector(state => state.auth.user);
 
   useEffect(() => {
     loadSkills();
-  }, []);
+  }, [authUser]);
 
   const loadSkills = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetchSkills();
-      setSkills(Array.isArray(res.data.data) ? res.data.data : []);
+      let filtered = Array.isArray(res.data.data) ? res.data.data : [];
+      if (authUser && authUser.id) {
+        filtered = filtered.filter(s => s.user_id === authUser.id);
+      }
+      setSkills(filtered);
     } catch (err) {
       setError('Failed to load skills');
       setSkills([]);
@@ -34,7 +40,7 @@ const Skills = () => {
     setCreating(true);
     setError(null);
     try {
-      await createSkill(newSkill);
+      await createSkill({ ...newSkill, user_id: authUser?.id });
       setNewSkill({ name: '', description: '' });
       loadSkills();
     } catch (err) {

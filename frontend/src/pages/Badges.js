@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchBadges, createBadge, deleteBadge } from '../services/api';
+import { useSelector } from 'react-redux';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -9,17 +10,22 @@ const Badges = () => {
   const [error, setError] = useState(null);
   const [newBadge, setNewBadge] = useState({ name: '', description: '' });
   const [creating, setCreating] = useState(false);
+  const authUser = useSelector(state => state.auth.user);
 
   useEffect(() => {
     loadBadges();
-  }, []);
+  }, [authUser]);
 
   const loadBadges = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetchBadges();
-      setBadges(Array.isArray(res.data.data) ? res.data.data : []);
+      let filtered = Array.isArray(res.data.data) ? res.data.data : [];
+      if (authUser && authUser.id) {
+        filtered = filtered.filter(b => b.user_id === authUser.id);
+      }
+      setBadges(filtered);
     } catch (err) {
       setError('Failed to load badges');
       setBadges([]);
@@ -36,7 +42,7 @@ const Badges = () => {
     setCreating(true);
     setError(null);
     try {
-      await createBadge(newBadge);
+      await createBadge({ ...newBadge, user_id: authUser?.id });
       setNewBadge({ name: '', description: '' });
       loadBadges();
     } catch (err) {

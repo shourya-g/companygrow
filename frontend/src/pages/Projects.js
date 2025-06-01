@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { fetchProjects, createProject, deleteProject } from '../services/api';
+import { useSelector } from 'react-redux';
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
@@ -7,24 +8,29 @@ const Projects = () => {
   const [error, setError] = useState(null);
   const [newProject, setNewProject] = useState({ name: '', description: '' });
   const [creating, setCreating] = useState(false);
+  const authUser = useSelector(state => state.auth.user);
 
-  useEffect(() => {
-    loadProjects();
-  }, []);
-
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetchProjects();
-      // Ensure projects is always an array
-      setProjects(Array.isArray(res.data.data) ? res.data.data : []);
+      // Only show projects created by or assigned to the current user
+      let filtered = Array.isArray(res.data.data) ? res.data.data : [];
+      if (authUser && authUser.id) {
+        filtered = filtered.filter(p => p.created_by === authUser.id || p.project_manager_id === authUser.id);
+      }
+      setProjects(filtered);
     } catch (err) {
       setError('Failed to load projects');
       setProjects([]);
     }
     setLoading(false);
-  };
+  }, [authUser]);
+
+  useEffect(() => {
+    loadProjects();
+  }, [authUser, loadProjects]);
 
   const handleInputChange = (e) => {
     setNewProject({ ...newProject, [e.target.name]: e.target.value });
@@ -35,7 +41,8 @@ const Projects = () => {
     setCreating(true);
     setError(null);
     try {
-      await createProject(newProject);
+      // Attach user as creator
+      await createProject({ ...newProject, created_by: authUser?.id });
       setNewProject({ name: '', description: '' });
       loadProjects();
     } catch (err) {

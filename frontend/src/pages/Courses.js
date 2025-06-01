@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { fetchCourses, createCourse, deleteCourse } from '../services/api';
+import { useSelector } from 'react-redux';
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
@@ -7,23 +8,28 @@ const Courses = () => {
   const [error, setError] = useState(null);
   const [newCourse, setNewCourse] = useState({ title: '', description: '' });
   const [creating, setCreating] = useState(false);
+  const authUser = useSelector(state => state.auth.user);
 
-  useEffect(() => {
-    loadCourses();
-  }, []);
-
-  const loadCourses = async () => {
+  const loadCourses = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetchCourses();
-      setCourses(Array.isArray(res.data.data) ? res.data.data : []);
+      let filtered = Array.isArray(res.data.data) ? res.data.data : [];
+      if (authUser && authUser.id) {
+        filtered = filtered.filter(c => c.created_by === authUser.id);
+      }
+      setCourses(filtered);
     } catch (err) {
       setError('Failed to load courses');
       setCourses([]);
     }
     setLoading(false);
-  };
+  }, [authUser]);
+
+  useEffect(() => {
+    loadCourses();
+  }, [authUser, loadCourses]);
 
   const handleInputChange = (e) => {
     setNewCourse({ ...newCourse, [e.target.name]: e.target.value });
@@ -34,7 +40,7 @@ const Courses = () => {
     setCreating(true);
     setError(null);
     try {
-      await createCourse(newCourse);
+      await createCourse({ ...newCourse, created_by: authUser?.id });
       setNewCourse({ title: '', description: '' });
       loadCourses();
     } catch (err) {
