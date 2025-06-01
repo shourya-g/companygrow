@@ -41,6 +41,7 @@ app.use('/api/projects', require('./routes/projects'));
 app.use('/api/badges', require('./routes/badges'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/payments', require('./routes/payments'));
+app.use('/api/skills', require('./routes/skills'));
 
 // Health check
 app.get('/api/health', (req, res) => {
