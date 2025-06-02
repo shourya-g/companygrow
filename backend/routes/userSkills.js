@@ -5,6 +5,8 @@ const userSkillController = require('../controllers/userSkillController');
 // Real user skill routes
 router.get('/', userSkillController.getAllUserSkills);
 router.get('/:id', userSkillController.getUserSkillById);
-// ...other user skill routes (add, update, remove, verify, etc.)
+router.post('/', userSkillController.addUserSkill);
+router.put('/:id', userSkillController.updateUserSkill);
+router.delete('/:id', userSkillController.deleteUserSkill);
 
 module.exports = router;

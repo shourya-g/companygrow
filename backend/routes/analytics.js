@@ -1,9 +1,23 @@
 const express = require('express');
 const router = express.Router();
+const analyticsController = require('../controllers/analyticsController');
 
-// Placeholder routes for analytics
-router.get('/', (req, res) => {
-  res.json({ message: 'analytics routes - Coming soon!' });
-});
+// GET /api/analytics/users - User statistics
+router.get('/users', analyticsController.getUserStats);
+
+// GET /api/analytics/projects - Project statistics
+router.get('/projects', analyticsController.getProjectStats);
+
+// GET /api/analytics/skills - Skill distribution
+router.get('/skills', analyticsController.getSkillDistribution);
+
+// GET /api/analytics/courses - Course statistics
+router.get('/courses', analyticsController.getCourseStats);
+
+// GET /api/analytics/payments - Payment statistics
+router.get('/payments', analyticsController.getPaymentStats);
+
+// GET /api/analytics/tokens - Token transaction statistics
+router.get('/tokens', analyticsController.getTokenStats);
 
 module.exports = router;

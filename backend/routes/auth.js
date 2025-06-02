@@ -1,18 +1,15 @@
 const express = require('express');
 const router = express.Router();
+const userController = require('../controllers/userController');
 
 // @route   POST /api/auth/register
 // @desc    Register user
 // @access  Public
-router.post('/register', (req, res) => {
-  res.json({ message: 'Register endpoint - Coming soon!' });
-});
+router.post('/register', userController.registerUser);
 
 // @route   POST /api/auth/login
 // @desc    Login user
 // @access  Public
-router.post('/login', (req, res) => {
-  res.json({ message: 'Login endpoint - Coming soon!' });
-});
+router.post('/login', userController.loginUser);
 
 module.exports = router;

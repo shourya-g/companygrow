@@ -12,7 +12,13 @@ const UserSkill = sequelize.define('UserSkill', {
   updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, {
   tableName: 'user_skills',
-  timestamps: false
+  timestamps: false,
+  indexes: [
+    {
+      unique: true,
+      fields: ['user_id', 'skill_id']
+    }
+  ]
 });
 
 module.exports = UserSkill;

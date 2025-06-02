@@ -1,7 +1,19 @@
 import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Search, User } from 'lucide-react';
 
 const Navbar = () => {
+  const user = useSelector(state => state.auth.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -23,10 +35,15 @@ const Navbar = () => {
               3
             </span>
           </button>
-          <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100">
-            <User className="w-5 h-5 text-gray-600" />
-            <span className="text-sm font-medium text-gray-700">John Doe</span>
-          </button>
+          {user ? (
+            <>
+              <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100">
+                <User className="w-5 h-5 text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">{user.first_name} {user.last_name}</span>
+              </button>
+              <button onClick={handleLogout} className="ml-2 bg-red-500 text-white px-3 py-1 rounded">Logout</button>
+            </>
+          ) : null}
         </div>
       </div>
     </nav>

@@ -47,4 +47,26 @@ export const fetchNotifications = () => api.get('/notifications');
 export const fetchPayments = () => api.get('/payments');
 export const createPayout = (data) => api.post('/payments/payout', data);
 
+// AUTH API
+export const fetchLogin = (data) => api.post('/auth/login', data);
+export const fetchRegister = (data) => api.post('/auth/register', data);
+
+// USER SKILLS API
+export const addUserSkill = (data) => api.post('/userSkills', data);
+export const updateUserSkill = (id, data) => api.put(`/userSkills/${id}`, data);
+export const deleteUserSkill = (id) => api.delete(`/userSkills/${id}`);
+
+// USER SKILLS API (user-centric endpoints)
+// Add a skill to a user
+export const addUserSkillToUser = (userId, data) => api.post(`/users/${userId}/skills`, data);
+// Update a user's skill (proficiency, years, etc.)
+export const updateUserSkillForUser = (userId, skillId, data) => api.put(`/users/${userId}/skills/${skillId}`, data);
+// Delete a user's skill
+export const deleteUserSkillForUser = (userId, skillId) => api.delete(`/users/${userId}/skills/${skillId}`);
+// Fetch a user's actual skills
+export async function fetchUserSkills(userId) {
+  const res = await api.get(`/users/${userId}/skills`);
+  return res.data.data;
+}
+
 export default api;

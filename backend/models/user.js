@@ -21,7 +21,19 @@ const User = sequelize.define('User', {
   updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, {
   tableName: 'users',
-  timestamps: false
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+  defaultScope: {
+    attributes: { exclude: ['password'] }
+  }
 });
+
+// Always remove password from JSON output
+User.prototype.toJSON = function () {
+  const values = Object.assign({}, this.get());
+  delete values.password;
+  return values;
+};
 
 module.exports = User;
