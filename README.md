@@ -38,14 +38,26 @@ A smart workforce development platform that enables organizations to nurture emp
    ```
 
 3. **Database Setup**
-   ```bash
-   # Create PostgreSQL database
+   ```cmd
+   REM Create PostgreSQL database (Windows/cmd)
    createdb companygrow_dev
-   
-   # Run migrations
-   cd backend && npm run db:migrate
-   
-   # Seed initial data
+
+   REM Run migrations (from backend directory)
+   cd backend
+   npm run db:migrate
+   ```
+   This will run the schema using `migrate.js` and your `.env` credentials.
+
+   **Load Sample Data:**
+   ```cmd
+   REM Still in backend directory, load sample data (Windows/cmd)
+   psql -U postgres -d companygrow_dev -f companygrow_sample_data.sql
+   ```
+   - Replace `postgres` with your DB user if different.
+   - This will populate your database with demo users, skills, courses, etc.
+
+   **(Optional) Seed with Sequelize:**
+   ```cmd
    npm run db:seed
    ```
 
