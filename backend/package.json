@@ -2,15 +2,15 @@
   "name": "companygrow-backend",
   "version": "1.0.0",
   "description": "CompanyGrow Backend API",
-  "main": "server.js",
-  "scripts": {
+  "main": "server.js",  "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
     "db:migrate": "node migrate.js",
-    "db:seed": "npx sequelize-cli db:seed:all",
+    "db:seed": "node seed.js",
     "db:reset": "npx sequelize-cli db:drop && npx sequelize-cli db:create && npm run db:migrate && npm run db:seed"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.41.0",
     "cors": "^2.8.5",
