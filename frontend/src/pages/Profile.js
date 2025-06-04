@@ -1,114 +1,91 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
-import { fetchSkills, fetchCourses, fetchBadges, usersAPI } from '../services/api';
+import { usersAPI, handleApiError, skillUtils } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import SkillTag from '../components/SkillTag';
+import UserSkillManagement from '../components/UserSkillManagement';
+import { 
+  User, Mail, Calendar, MapPin, Briefcase, 
+  TrendingUp, Award, BookOpen, LogOut, Edit,
+  CheckCircle, Clock, Star
+} from 'lucide-react';
 
 const Profile = () => {
   const user = useSelector(state => state.auth.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [skills, setSkills] = useState([]); // Initialize as empty array
-  const [courses, setCourses] = useState([]);
-  const [badges, setBadges] = useState([]);
+  
+  const [userProfile, setUserProfile] = useState(null);
+  const [userSkills, setUserSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
-  const [editProfile, setEditProfile] = useState({ 
-    experience: '', 
-    name: '', 
-    email: '',
+  const [saving, setSaving] = useState(false);
+  const [editForm, setEditForm] = useState({
     first_name: '',
     last_name: '',
+    email: '',
     department: '',
-    position: ''
+    position: '',
+    phone: '',
+    address: ''
   });
-  const [saving, setSaving] = useState(false);
-  const [allSkills, setAllSkills] = useState([]); // Initialize as empty array
-  const [showAddSkill, setShowAddSkill] = useState(false);
-  const [addingSkill, setAddingSkill] = useState(false);
-  const [addSkillError, setAddSkillError] = useState(null);
-  const [skillSearch, setSkillSearch] = useState("");
-
-  // Ensure skills and allSkills are arrays before filtering
-  const filteredSkills = Array.isArray(allSkills) && Array.isArray(skills) 
-    ? allSkills.filter(s =>
-        !skills.some(us => us.id === s.id) &&
-        s.name.toLowerCase().includes(skillSearch.toLowerCase())
-      )
-    : [];
 
   useEffect(() => {
     if (user && user.id) {
-      loadProfile();
-      loadAllSkills();
+      loadUserProfile();
     }
   }, [user]);
 
   useEffect(() => {
     if (user) {
-      setEditProfile({
-        experience: user.experience || '',
-        name: user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-        email: user.email || '',
+      setEditForm({
         first_name: user.first_name || '',
         last_name: user.last_name || '',
+        email: user.email || '',
         department: user.department || '',
-        position: user.position || ''
+        position: user.position || '',
+        phone: user.phone || '',
+        address: user.address || ''
       });
     }
   }, [user]);
 
-  const loadProfile = async () => {
-    if (!user || !user.id) return;
-    
+  const loadUserProfile = async () => {
     setLoading(true);
     setError(null);
+    
     try {
-      // Fetch the user's skills
-      const userSkillsResponse = await usersAPI.getSkills(user.id);
-      const userSkills = Array.isArray(userSkillsResponse.data.data) ? userSkillsResponse.data.data : [];
-      setSkills(userSkills);
-
-      // Fetch courses
-      const coursesRes = await fetchCourses();
-      const coursesData = Array.isArray(coursesRes.data.data) ? coursesRes.data.data : [];
-      setCourses(coursesData);
-
-      // Fetch badges
-      const badgesRes = await fetchBadges();
-      const badgesData = Array.isArray(badgesRes.data.data) ? badgesRes.data.data : [];
-      setBadges(badgesData);
+      // Load comprehensive user profile data
+      const profileResponse = await usersAPI.getProfile(user.id);
+      setUserProfile(profileResponse.data.data);
+      
+      // Extract skills from profile data
+      if (profileResponse.data.data.Skills) {
+        setUserSkills(profileResponse.data.data.Skills);
+      }
     } catch (err) {
-      console.error('Load profile error:', err);
-      setError('Failed to load profile');
-      // Set defaults to prevent errors
-      setSkills([]);
-      setCourses([]);
-      setBadges([]);
+      const errorInfo = handleApiError(err);
+      setError(errorInfo.message);
+      
+      // Fallback to basic user data
+      setUserProfile(user);
+      setUserSkills([]);
     }
+    
     setLoading(false);
   };
 
-  const loadAllSkills = async () => {
-    try {
-      const skillsRes = await fetchSkills();
-      const skillsData = Array.isArray(skillsRes.data.data) ? skillsRes.data.data : [];
-      setAllSkills(skillsData);
-    } catch (err) {
-      console.error('Load all skills error:', err);
-      setAllSkills([]);
+  const handleSkillsChange = (newSkills) => {
+    setUserSkills(newSkills);
+    
+    // Update user profile skills as well
+    if (userProfile) {
+      setUserProfile({
+        ...userProfile,
+        Skills: newSkills
+      });
     }
-  };
-
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
-  };
-
-  const handleEditChange = (e) => {
-    setEditProfile({ ...editProfile, [e.target.name]: e.target.value });
   };
 
   const handleEditProfile = () => {
@@ -117,100 +94,87 @@ const Profile = () => {
 
   const handleCancelEdit = () => {
     setEditing(false);
-    if (user) {
-      setEditProfile({
-        experience: user.experience || '',
-        name: user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-        email: user.email || '',
-        first_name: user.first_name || '',
-        last_name: user.last_name || '',
-        department: user.department || '',
-        position: user.position || ''
-      });
-    }
+    setEditForm({
+      first_name: user.first_name || '',
+      last_name: user.last_name || '',
+      email: user.email || '',
+      department: user.department || '',
+      position: user.position || '',
+      phone: user.phone || '',
+      address: user.address || ''
+    });
   };
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    try {
-      const updateData = {
-        first_name: editProfile.first_name,
-        last_name: editProfile.last_name,
-        email: editProfile.email,
-        department: editProfile.department,
-        position: editProfile.position
-      };
 
-      await usersAPI.update(user.id, updateData);
+    try {
+      await usersAPI.update(user.id, editForm);
       setEditing(false);
       
-      // Reload user data
-      window.location.reload();
+      // Reload profile to get updated data
+      await loadUserProfile();
+      
+      // You might want to dispatch an action to update the auth state as well
+      window.location.reload(); // Simple approach for now
     } catch (err) {
-      console.error('Save profile error:', err);
-      setError('Failed to update profile');
+      const errorInfo = handleApiError(err);
+      setError(errorInfo.message);
     }
+    
     setSaving(false);
   };
 
-  // Remove skill from user
-  const handleRemoveSkill = async (skill) => {
-    if (!window.confirm(`Remove skill '${skill.name}'?`)) return;
-    try {
-      await usersAPI.deleteSkill(user.id, skill.id);
-      setSkills(prevSkills => Array.isArray(prevSkills) ? prevSkills.filter(s => s.id !== skill.id) : []);
-      setShowAddSkill(false);
-    } catch (err) {
-      console.error('Remove skill error:', err);
-      alert('Failed to remove skill');
-    }
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
   };
 
-  // Add skill to user
-  const handleAddSkill = async (skill) => {
-    setAddingSkill(true);
-    setAddSkillError(null);
-    try {
-      const skillData = {
-        skill_id: skill.id,
-        proficiency_level: 1,
-        years_experience: 0
+  const calculateSkillStats = () => {
+    if (!userSkills || userSkills.length === 0) {
+      return {
+        totalSkills: 0,
+        verifiedSkills: 0,
+        averageProficiency: 0,
+        portfolioScore: 0,
+        topCategories: []
       };
-      
-      await usersAPI.addSkill(user.id, skillData);
-      
-      // Add skill to local state
-      const newSkill = {
-        id: skill.id,
-        name: skill.name,
-        category: skill.category,
-        description: skill.description,
-        proficiency_level: 1,
-        years_experience: 0,
-        is_verified: false
-      };
-      
-      setSkills(prevSkills => Array.isArray(prevSkills) ? [...prevSkills, newSkill] : [newSkill]);
-      setShowAddSkill(false);
-      setSkillSearch("");
-    } catch (err) {
-      console.error('Add skill error:', err);
-      setAddSkillError('Failed to add skill');
     }
-    setAddingSkill(false);
+
+    const verifiedSkills = userSkills.filter(skill => skill.is_verified).length;
+    const averageProficiency = userSkills.reduce((sum, skill) => sum + skill.proficiency_level, 0) / userSkills.length;
+    const portfolioScore = skillUtils.calculatePortfolioScore(userSkills);
+    
+    // Calculate category distribution
+    const categoryCount = {};
+    userSkills.forEach(skill => {
+      const category = skill.category || 'other';
+      categoryCount[category] = (categoryCount[category] || 0) + 1;
+    });
+    
+    const topCategories = Object.entries(categoryCount)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3)
+      .map(([category, count]) => ({ category, count }));
+
+    return {
+      totalSkills: userSkills.length,
+      verifiedSkills,
+      averageProficiency: Math.round(averageProficiency * 10) / 10,
+      portfolioScore,
+      topCategories
+    };
   };
 
-  const courseProgress = Array.isArray(courses) && courses.length > 0 
-    ? Math.round((courses.filter(c => c.completed).length / courses.length) * 100) 
-    : 0;
+  const skillStats = calculateSkillStats();
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </div>
     );
@@ -218,13 +182,13 @@ const Profile = () => {
 
   if (!user) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">No User Found</h1>
           <p className="text-gray-600 mb-4">Please login to view your profile.</p>
           <button 
             onClick={() => navigate('/login')}
-            className="bg-primary-600 text-white px-4 py-2 rounded"
+            className="bg-blue-600 text-white px-4 py-2 rounded"
           >
             Go to Login
           </button>
@@ -233,239 +197,304 @@ const Profile = () => {
     );
   }
 
+  const displayProfile = userProfile || user;
+
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-          <p className="text-gray-600 mt-2">Your skills, experience, and training progress</p>
+    <div className="max-w-6xl mx-auto space-y-8">
+      {/* Header Section */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-start">
+          <div className="flex items-center space-x-6">
+            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+              <User className="w-10 h-10 text-blue-600" />
+            </div>
+            
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {displayProfile.first_name && displayProfile.last_name 
+                  ? `${displayProfile.first_name} ${displayProfile.last_name}` 
+                  : displayProfile.name || displayProfile.email}
+              </h1>
+              <div className="flex items-center text-gray-600 mt-1">
+                <Mail className="w-4 h-4 mr-2" />
+                <span>{displayProfile.email}</span>
+              </div>
+              {displayProfile.position && displayProfile.department && (
+                <div className="flex items-center text-gray-600 mt-1">
+                  <Briefcase className="w-4 h-4 mr-2" />
+                  <span>{displayProfile.position} • {displayProfile.department}</span>
+                </div>
+              )}
+              {displayProfile.hire_date && (
+                <div className="flex items-center text-gray-600 mt-1">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  <span>Joined {new Date(displayProfile.hire_date).toLocaleDateString()}</span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={handleEditProfile}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Profile
+            </button>
+            <button 
+              onClick={handleLogout} 
+              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </button>
+          </div>
         </div>
-        <button 
-          onClick={handleLogout} 
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
-        >
-          Logout
-        </button>
       </div>
 
+      {/* Error Message */}
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="text-red-600">{error}</div>
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <div className="mb-4">
-          {editing ? (
-            <form onSubmit={handleSaveProfile} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">First Name</label>
-                  <input 
-                    name="first_name" 
-                    value={editProfile.first_name} 
-                    onChange={handleEditChange} 
-                    className="mt-1 border rounded px-3 py-2 w-full focus:ring-primary-500 focus:border-primary-500" 
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Last Name</label>
-                  <input 
-                    name="last_name" 
-                    value={editProfile.last_name} 
-                    onChange={handleEditChange} 
-                    className="mt-1 border rounded px-3 py-2 w-full focus:ring-primary-500 focus:border-primary-500" 
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
-                <input 
-                  name="email" 
-                  type="email"
-                  value={editProfile.email} 
-                  onChange={handleEditChange} 
-                  className="mt-1 border rounded px-3 py-2 w-full focus:ring-primary-500 focus:border-primary-500" 
-                  required
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Department</label>
-                  <input 
-                    name="department" 
-                    value={editProfile.department} 
-                    onChange={handleEditChange} 
-                    className="mt-1 border rounded px-3 py-2 w-full focus:ring-primary-500 focus:border-primary-500" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Position</label>
-                  <input 
-                    name="position" 
-                    value={editProfile.position} 
-                    onChange={handleEditChange} 
-                    className="mt-1 border rounded px-3 py-2 w-full focus:ring-primary-500 focus:border-primary-500" 
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <button 
-                  type="submit" 
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors" 
-                  disabled={saving}
-                >
-                  {saving ? 'Saving...' : 'Save'}
-                </button>
-                <button 
-                  type="button" 
-                  className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition-colors" 
-                  onClick={handleCancelEdit}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          ) : (
-            <>
-              <div className="space-y-2">
-                <div className="font-semibold text-lg">
-                  {user.first_name && user.last_name 
-                    ? `${user.first_name} ${user.last_name}` 
-                    : user.name || user.username || user.email}
-                </div>
-                <div className="text-gray-600">{user.email}</div>
-                {user.department && (
-                  <div className="text-gray-500">Department: {user.department}</div>
-                )}
-                {user.position && (
-                  <div className="text-gray-500">Position: {user.position}</div>
-                )}
-              </div>
-              <button 
-                onClick={handleEditProfile} 
-                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-              >
-                Edit Profile
-              </button>
-            </>
-          )}
+      {/* Skills Overview Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <BookOpen className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Skills</p>
+              <p className="text-2xl font-bold text-gray-900">{skillStats.totalSkills}</p>
+            </div>
+          </div>
         </div>
+        
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Verified</p>
+              <p className="text-2xl font-bold text-gray-900">{skillStats.verifiedSkills}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center">
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <Star className="w-6 h-6 text-yellow-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Avg Proficiency</p>
+              <p className="text-2xl font-bold text-gray-900">{skillStats.averageProficiency}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <TrendingUp className="w-6 h-6 text-purple-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Portfolio Score</p>
+              <p className="text-2xl font-bold text-gray-900">{skillStats.portfolioScore}</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <div className="mb-6">
-          <h2 className="font-semibold text-lg mb-3">Skills</h2>
-          <div className="flex flex-wrap gap-2 items-center">
-            {Array.isArray(skills) && skills.map(skill => (
-              <SkillTag 
-                key={skill.id} 
-                skill={skill} 
-                removable={editing} 
-                onRemove={handleRemoveSkill} 
-              />
-            ))}
-            
-            {editing && (
-              <div className="relative">
-                <button
-                  type="button"
-                  className="flex items-center bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-sm border border-blue-200 hover:bg-blue-100 transition"
-                  onClick={() => setShowAddSkill(!showAddSkill)}
-                >
-                  <span className="mr-1">+ Add Skill</span>
-                </button>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column - Profile Details */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-lg shadow p-6">
+            {editing ? (
+              <form onSubmit={handleSaveProfile} className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit Profile</h3>
                 
-                {showAddSkill && (
-                  <div className="absolute z-10 bg-white border border-gray-200 rounded shadow-lg p-4 mt-2 w-64">
-                    <div className="mb-2 font-semibold text-gray-700 text-sm">Add a skill</div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      First Name
+                    </label>
                     <input
                       type="text"
-                      className="border rounded px-2 py-1 w-full mb-2 text-sm focus:ring-primary-500 focus:border-primary-500"
-                      placeholder="Search skills..."
-                      value={skillSearch}
-                      onChange={e => setSkillSearch(e.target.value)}
-                      autoFocus
+                      value={editForm.first_name}
+                      onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
                     />
-                    <div className="max-h-32 overflow-y-auto">
-                      {filteredSkills.length === 0 ? (
-                        <div className="text-gray-400 px-2 py-1 text-sm">
-                          {skillSearch ? 'No skills found' : 'Type to search skills'}
-                        </div>
-                      ) : (
-                        filteredSkills.map(skill => (
-                          <div 
-                            key={skill.id} 
-                            className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded text-sm flex items-center justify-between"
-                            onClick={() => handleAddSkill(skill)}
-                          >
-                            <span>{skill.name}</span>
-                            <span className="text-xs text-gray-500">{skill.category}</span>
-                          </div>
-                        ))
-                      )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.last_name}
+                      onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Department
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.department}
+                    onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Position
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.position}
+                    onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address
+                  </label>
+                  <textarea
+                    value={editForm.address}
+                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows="3"
+                  />
+                </div>
+                
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  >
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Details</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Role</label>
+                    <p className="text-gray-900 capitalize">{displayProfile.role}</p>
+                  </div>
+                  
+                  {displayProfile.phone && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Phone</label>
+                      <p className="text-gray-900">{displayProfile.phone}</p>
                     </div>
-                    
-                    {addSkillError && (
-                      <div className="text-red-500 text-xs mt-2">{addSkillError}</div>
-                    )}
-                    {addingSkill && (
-                      <div className="text-xs text-gray-500 mt-2">Adding...</div>
-                    )}
-                    
-                    <button 
-                      className="mt-2 text-xs text-gray-500 hover:text-gray-700" 
-                      onClick={() => {
-                        setShowAddSkill(false);
-                        setSkillSearch("");
-                        setAddSkillError(null);
-                      }}
-                    >
-                      Cancel
-                    </button>
+                  )}
+                  
+                  {displayProfile.address && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Address</label>
+                      <p className="text-gray-900">{displayProfile.address}</p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Member Since</label>
+                    <p className="text-gray-900">
+                      {new Date(displayProfile.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Last Login</label>
+                    <p className="text-gray-900">
+                      {displayProfile.last_login 
+                        ? new Date(displayProfile.last_login).toLocaleDateString()
+                        : 'Never'
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {/* Top Skill Categories */}
+                {skillStats.topCategories.length > 0 && (
+                  <div className="mt-6">
+                    <h4 className="text-sm font-medium text-gray-600 mb-3">Top Skill Categories</h4>
+                    <div className="space-y-2">
+                      {skillStats.topCategories.map(({ category, count }) => (
+                        <div key={category} className="flex justify-between items-center">
+                          <span className="text-sm text-gray-900 capitalize">{category}</span>
+                          <span className="text-sm text-gray-600">{count} skill{count !== 1 ? 's' : ''}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
             )}
           </div>
-          
-          {!Array.isArray(skills) || skills.length === 0 ? (
-            <p className="text-gray-500 text-sm mt-2">No skills added yet.</p>
-          ) : null}
         </div>
 
-        <div className="mb-6">
-          <h2 className="font-semibold text-lg mb-3">Training Progress</h2>
-          <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
-            <div 
-              className="bg-green-500 h-4 rounded-full transition-all duration-300" 
-              style={{ width: `${courseProgress}%` }}
-            ></div>
+        {/* Right Column - Skills Management */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-lg shadow p-6">
+            <UserSkillManagement
+              userId={user.id}
+              isOwnProfile={true}
+              onSkillsChange={handleSkillsChange}
+            />
           </div>
-          <div className="text-sm text-gray-600">
-            {courseProgress}% of courses completed ({Array.isArray(courses) ? courses.length : 0} total courses)
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h2 className="font-semibold text-lg mb-3">Badges</h2>
-          {Array.isArray(badges) && badges.length > 0 ? (
-            <ul className="flex flex-wrap gap-2">
-              {badges.map(badge => (
-                <li 
-                  key={badge.id} 
-                  className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm"
-                >
-                  {badge.name}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500 text-sm">No badges earned yet.</p>
-          )}
         </div>
       </div>
     </div>
