@@ -13,7 +13,8 @@ import {
   Calendar,
   Search,
   Eye,
-  RotateCcw
+  RotateCcw,
+  X
 } from 'lucide-react';
 import { courseEnrollmentsAPI } from '../services/api';
 import CourseProgress from '../components/CourseProgress';
@@ -29,6 +30,7 @@ const MyEnrollments = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [showProgressModal, setShowProgressModal] = useState(false);
+  const [deEnrollingId, setDeEnrollingId] = useState(null);
 
   // Load user enrollments
   const loadEnrollments = useCallback(async () => {
@@ -81,6 +83,17 @@ const MyEnrollments = () => {
       )
     );
     setSelectedEnrollment(updatedEnrollment);
+  };
+
+  const handleDeEnroll = async (enrollmentId) => {
+    setDeEnrollingId(enrollmentId);
+    try {
+      await courseEnrollmentsAPI.unenroll(enrollmentId);
+      setEnrollments(prev => prev.filter(e => e.id !== enrollmentId));
+    } catch (err) {
+      setError('Failed to de-enroll from course');
+    }
+    setDeEnrollingId(null);
   };
 
   const getStatusIcon = (status) => {
@@ -370,18 +383,26 @@ const MyEnrollments = () => {
                         <Eye className="w-4 h-4 inline mr-1" />
                         View Course
                       </Link>
-                      
                       {enrollment.status !== 'completed' && (
-                        <button
-                          onClick={() => {
-                            setSelectedEnrollment(enrollment);
-                            setShowProgressModal(true);
-                          }}
-                          className="flex-1 bg-gray-100 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors text-center text-sm font-medium"
-                        >
-                          <TrendingUp className="w-4 h-4 inline mr-1" />
-                          Update
-                        </button>
+                        <>
+                          <button
+                            onClick={() => {
+                              setSelectedEnrollment(enrollment);
+                              setShowProgressModal(true);
+                            }}
+                            className="flex-1 bg-gray-100 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors text-center text-sm font-medium"
+                          >
+                            <TrendingUp className="w-4 h-4 inline mr-1" />
+                            Update
+                          </button>
+                          <button
+                            onClick={() => handleDeEnroll(enrollment.id)}
+                            className="flex-1 bg-red-100 text-red-700 py-2 px-3 rounded-lg hover:bg-red-200 transition-colors text-center text-sm font-medium"
+                            disabled={deEnrollingId === enrollment.id}
+                          >
+                            {deEnrollingId === enrollment.id ? 'De-enrolling...' : 'De-enroll'}
+                          </button>
+                        </>
                       )}
                     </div>
 
