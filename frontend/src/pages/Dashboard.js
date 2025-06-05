@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { dashboardAPI, courseEnrollmentsAPI, handleApiError } from '../services/api';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState({
     overview: null,
     popularCourses: [],
@@ -14,12 +16,30 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [enrolling, setEnrolling] = useState({}); // Track enrollment status per course
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [enrollingId, setEnrollingId] = useState(null);
+  const [enrollError, setEnrollError] = useState(null);
   
   const user = useSelector(state => state.auth.user);
 
   useEffect(() => {
     loadDashboardData();
   }, []);
+
+  useEffect(() => {
+    // Fetch user's enrollments for button logic
+    async function fetchEnrollments() {
+      if (!user) return;
+      try {
+        const res = await courseEnrollmentsAPI.getUserEnrollments(user.id);
+        const enrolledIds = Array.isArray(res.data?.data) ? res.data.data.map(e => e.course_id) : [];
+        setEnrolledCourses(enrolledIds);
+      } catch (e) {
+        // ignore
+      }
+    }
+    fetchEnrollments();
+  }, [user]);
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -89,6 +109,23 @@ const Dashboard = () => {
     }
   };
 
+  const handleEnroll = async (courseId) => {
+    setEnrollingId(courseId);
+    setEnrollError(null);
+    try {
+      await courseEnrollmentsAPI.enroll({ course_id: courseId });
+      setEnrolledCourses([...enrolledCourses, courseId]);
+    } catch (err) {
+      if (err?.response?.status === 409) {
+        setEnrolledCourses([...enrolledCourses, courseId]);
+        setEnrollError('You are already enrolled in this course.');
+      } else {
+        setEnrollError('Failed to enroll in course.');
+      }
+    }
+    setEnrollingId(null);
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto">
@@ -128,22 +165,6 @@ const Dashboard = () => {
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
           >
             Refresh Data
-          </button>
-          <button 
-            onClick={async () => {
-              try {
-                const response = await fetch('/api/courses?active=true');
-                const data = await response.json();
-                console.log('All courses:', data);
-                alert(`Found ${data.data?.length || 0} courses in database`);
-              } catch (err) {
-                console.error('Test failed:', err);
-                alert('Test failed - check console');
-              }
-            }}
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 text-sm"
-          >
-            Test Courses API
           </button>
         </div>
       </div>
@@ -211,8 +232,11 @@ const Dashboard = () => {
                       {course.enrollment_count || 0} enrolled
                     </span>
                     <br />
-                    <button className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 mt-1">
-                      View
+                    <button
+                      className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 mt-1"
+                      onClick={() => navigate(`/courses/${course.id}`)}
+                    >
+                      Go to Course
                     </button>
                   </div>
                 </div>
@@ -227,7 +251,6 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-
         {/* Recommended Courses */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
@@ -249,8 +272,11 @@ const Dashboard = () => {
                       <p className="text-xs text-gray-400">by {course.instructor_name}</p>
                     )}
                   </div>
-                  <button className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-                    Enroll
+                  <button
+                    className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                    onClick={() => navigate(`/courses/${course.id}`)}
+                  >
+                    Go to Course
                   </button>
                 </div>
               ))}
