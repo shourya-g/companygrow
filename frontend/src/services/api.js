@@ -1,4 +1,3 @@
-// Updated API services for course enrollment management
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -35,9 +34,11 @@ api.interceptors.response.use(
       const errorCode = error.response.data?.error?.code;
       
       if (errorCode === 'TOKEN_EXPIRED' || errorCode === 'INVALID_TOKEN' || errorCode === 'NO_TOKEN') {
+        // Clear invalid token
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         
+        // Redirect to login if not already there
         if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
           window.location.href = '/login';
         }
@@ -48,111 +49,7 @@ api.interceptors.response.use(
   }
 );
 
-// ENHANCED COURSES API
-export const coursesAPI = {
-  // Get all courses with advanced filtering
-  getAll: (params = {}) => {
-    const queryParams = new URLSearchParams();
-    Object.keys(params).forEach(key => {
-      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-        queryParams.append(key, params[key]);
-      }
-    });
-    return api.get(`/courses?${queryParams.toString()}`);
-  },
-  
-  // Get course categories
-  getCategories: () => api.get('/courses/categories'),
-  
-  // Get popular courses
-  getPopular: (limit = 10) => api.get(`/courses/popular?limit=${limit}`),
-  
-  // Get recommended courses for user
-  getRecommended: (limit = 5) => api.get(`/courses/recommended?limit=${limit}`),
-  
-  // Get course by ID with optional enrollment data
-  getById: (id, params = {}) => {
-    const queryParams = new URLSearchParams();
-    Object.keys(params).forEach(key => {
-      if (params[key] !== undefined && params[key] !== null) {
-        queryParams.append(key, params[key]);
-      }
-    });
-    const queryString = queryParams.toString();
-    return api.get(`/courses/${id}${queryString ? '?' + queryString : ''}`);
-  },
-  
-  // Create new course
-  create: (data) => api.post('/courses', data),
-  
-  // Update course
-  update: (id, data) => api.put(`/courses/${id}`, data),
-  
-  // Delete course
-  delete: (id) => api.delete(`/courses/${id}`),
-  
-  // Toggle course status
-  toggleStatus: (id, is_active) => api.patch(`/courses/${id}/status`, { is_active })
-};
-
-// COURSE ENROLLMENTS API
-export const courseEnrollmentsAPI = {
-  // Get all enrollments (admin/manager only)
-  getAll: () => api.get('/courseEnrollments'),
-  
-  // Get enrollment by ID
-  getById: (id) => api.get(`/courseEnrollments/${id}`),
-  
-  // Enroll in course
-  enroll: (data) => api.post('/courseEnrollments', data),
-  
-  // Update course progress
-  updateProgress: (id, data) => api.put(`/courseEnrollments/${id}/progress`, data),
-  
-  // Get enrollments for specific user
-  getUserEnrollments: (userId) => api.get(`/courseEnrollments/user/${userId}`),
-  
-  // Unenroll from course
-  unenroll: (id) => api.delete(`/courseEnrollments/${id}`),
-  
-  // Get user's current enrollments
-  getMyEnrollments: () => api.get('/courseEnrollments/user/me')
-};
-
-// COURSE SKILLS API
-export const courseSkillsAPI = {
-  // Get all course skills
-  getAll: () => api.get('/courseSkills'),
-  
-  // Get course skill by ID
-  getById: (id) => api.get(`/courseSkills/${id}`),
-  
-  // Add skill to course
-  addToCourse: (data) => api.post('/courseSkills', data),
-  
-  // Update course skill
-  update: (id, data) => api.put(`/courseSkills/${id}`, data),
-  
-  // Remove skill from course
-  removeFromCourse: (id) => api.delete(`/courseSkills/${id}`),
-  
-  // Get skills for specific course
-  getCourseSkills: (courseId) => api.get(`/courseSkills/course/${courseId}`),
-  
-  // Get courses that teach specific skill
-  getSkillCourses: (skillId) => api.get(`/courseSkills/skill/${skillId}`)
-};
-
-// ENHANCED SKILLS API
-export const skillsAPI = {
-  getAll: () => api.get('/skills'),
-  getById: (id) => api.get(`/skills/${id}`),
-  create: (data) => api.post('/skills', data),
-  update: (id, data) => api.put(`/skills/${id}`, data),
-  delete: (id) => api.delete(`/skills/${id}`)
-};
-
-// AUTH API (existing)
+// AUTH API
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
@@ -161,21 +58,31 @@ export const authAPI = {
   verifyToken: () => api.get('/auth/verify'),
 };
 
-// USERS API (existing)
+// Legacy auth exports (for backward compatibility)
+export const fetchLogin = authAPI.login;
+export const fetchRegister = authAPI.register;
+
+// USERS API
 export const usersAPI = {
   getAll: () => api.get('/users'),
   getById: (id) => api.get(`/users/${id}`),
+  getProfile: (id) => api.get(`/users/${id}/profile`),
+  getDashboard: (id) => api.get(`/users/${id}/dashboard`),
   update: (id, data) => api.put(`/users/${id}`, data),
   delete: (id) => api.delete(`/users/${id}`),
+  activate: (id, data) => api.put(`/users/${id}/activate`, data),
   getSkills: (userId) => api.get(`/users/${userId}/skills`),
   addSkill: (userId, skillData) => api.post(`/users/${userId}/skills`, skillData),
   updateSkill: (userId, skillId, skillData) => api.put(`/users/${userId}/skills/${skillId}`, skillData),
   deleteSkill: (userId, skillId) => api.delete(`/users/${userId}/skills/${skillId}`),
-  getProfile: (userId) => api.get(`/users/${userId}/profile`),
-  getDashboard: (userId) => api.get(`/users/${userId}/dashboard`)
 };
 
-// PROJECTS API (existing)
+// Legacy user exports
+export const fetchUsers = usersAPI.getAll;
+export const createUser = (data) => api.post('/users', data);
+export const deleteUser = usersAPI.delete;
+
+// PROJECTS API
 export const projectsAPI = {
   getAll: () => api.get('/projects'),
   getById: (id) => api.get(`/projects/${id}`),
@@ -184,7 +91,48 @@ export const projectsAPI = {
   delete: (id) => api.delete(`/projects/${id}`),
 };
 
-// BADGES API (existing)
+// Legacy project exports
+export const fetchProjects = projectsAPI.getAll;
+export const createProject = projectsAPI.create;
+export const deleteProject = projectsAPI.delete;
+
+// COURSES API
+export const coursesAPI = {
+  getAll: () => api.get('/courses'),
+  getById: (id) => api.get(`/courses/${id}`),
+  create: (data) => api.post('/courses', data),
+  update: (id, data) => api.put(`/courses/${id}`, data),
+  delete: (id) => api.delete(`/courses/${id}`),
+  
+  // Enhanced endpoints
+  getPopular: (limit = 5) => api.get(`/courses/popular?limit=${limit}`),
+  getRecommended: (limit = 5) => api.get(`/courses/recommended?limit=${limit}`),
+  getRecent: (limit = 5) => api.get(`/courses/recent?limit=${limit}`),
+};
+
+// Legacy course exports
+export const fetchCourses = coursesAPI.getAll;
+export const createCourse = coursesAPI.create;
+export const deleteCourse = coursesAPI.delete;
+export const fetchPopularCourses = coursesAPI.getPopular;
+export const fetchRecommendedCourses = coursesAPI.getRecommended;
+export const fetchRecentCourses = coursesAPI.getRecent;
+
+// SKILLS API
+export const skillsAPI = {
+  getAll: () => api.get('/skills'),
+  getById: (id) => api.get(`/skills/${id}`),
+  create: (data) => api.post('/skills', data),
+  update: (id, data) => api.put(`/skills/${id}`, data),
+  delete: (id) => api.delete(`/skills/${id}`),
+};
+
+// Legacy skill exports
+export const fetchSkills = skillsAPI.getAll;
+export const createSkill = skillsAPI.create;
+export const deleteSkill = skillsAPI.delete;
+
+// BADGES API
 export const badgesAPI = {
   getAll: () => api.get('/badges'),
   getById: (id) => api.get(`/badges/${id}`),
@@ -193,7 +141,12 @@ export const badgesAPI = {
   delete: (id) => api.delete(`/badges/${id}`),
 };
 
-// NOTIFICATIONS API (existing)
+// Legacy badge exports
+export const fetchBadges = badgesAPI.getAll;
+export const createBadge = badgesAPI.create;
+export const deleteBadge = badgesAPI.delete;
+
+// NOTIFICATIONS API
 export const notificationsAPI = {
   getAll: () => api.get('/notifications'),
   getById: (id) => api.get(`/notifications/${id}`),
@@ -201,7 +154,10 @@ export const notificationsAPI = {
   delete: (id) => api.delete(`/notifications/${id}`),
 };
 
-// PAYMENTS API (existing)
+// Legacy notification exports
+export const fetchNotifications = notificationsAPI.getAll;
+
+// PAYMENTS API
 export const paymentsAPI = {
   getAll: () => api.get('/payments'),
   getById: (id) => api.get(`/payments/${id}`),
@@ -209,7 +165,41 @@ export const paymentsAPI = {
   setupStripeAccount: () => api.post('/payments/setup-stripe'),
 };
 
-// ANALYTICS API (existing)
+// Legacy payment exports
+export const fetchPayments = paymentsAPI.getAll;
+export const createPayout = paymentsAPI.createPayout;
+
+// COURSE ENROLLMENTS API
+export const courseEnrollmentsAPI = {
+  getAll: () => api.get('/courseEnrollments'),
+  getById: (id) => api.get(`/courseEnrollments/${id}`),
+  enroll: (data) => api.post('/courseEnrollments', data),
+  updateProgress: (id, data) => api.put(`/courseEnrollments/${id}/progress`, data),
+  getUserEnrollments: (userId) => api.get(`/courseEnrollments/user/${userId}`),
+  unenroll: (id) => api.delete(`/courseEnrollments/${id}`),
+};
+
+// USER SKILLS API (legacy support)
+export const userSkillsAPI = {
+  getAll: () => api.get('/userSkills'),
+  getById: (id) => api.get(`/userSkills/${id}`),
+  create: (data) => api.post('/userSkills', data),
+  update: (id, data) => api.put(`/userSkills/${id}`, data),
+  delete: (id) => api.delete(`/userSkills/${id}`),
+};
+
+// Legacy user skill exports
+export const addUserSkill = userSkillsAPI.create;
+export const updateUserSkill = userSkillsAPI.update;
+export const deleteUserSkill = userSkillsAPI.delete;
+
+// User-centric skill management (recommended)
+export const addUserSkillToUser = usersAPI.addSkill;
+export const updateUserSkillForUser = usersAPI.updateSkill;
+export const deleteUserSkillForUser = usersAPI.deleteSkill;
+export const fetchUserSkills = usersAPI.getSkills;
+
+// ANALYTICS API
 export const analyticsAPI = {
   getDashboard: () => api.get('/analytics/dashboard'),
   getUserStats: () => api.get('/analytics/users'),
@@ -220,25 +210,19 @@ export const analyticsAPI = {
   getTokenStats: () => api.get('/analytics/tokens'),
 };
 
-// LEGACY EXPORTS (for backward compatibility)
-export const fetchCourses = coursesAPI.getAll;
-export const createCourse = coursesAPI.create;
-export const deleteCourse = coursesAPI.delete;
-export const fetchSkills = skillsAPI.getAll;
-export const createSkill = skillsAPI.create;
-export const deleteSkill = skillsAPI.delete;
-export const fetchProjects = projectsAPI.getAll;
-export const createProject = projectsAPI.create;
-export const deleteProject = projectsAPI.delete;
-export const fetchBadges = badgesAPI.getAll;
-export const createBadge = badgesAPI.create;
-export const deleteBadge = badgesAPI.delete;
-export const fetchNotifications = notificationsAPI.getAll;
-export const fetchPayments = paymentsAPI.getAll;
-export const createPayout = paymentsAPI.createPayout;
-export const fetchUsers = usersAPI.getAll;
-export const createUser = (data) => api.post('/users', data);
-export const deleteUser = usersAPI.delete;
+// DASHBOARD SPECIFIC API CALLS
+export const dashboardAPI = {
+  getOverview: () => api.get('/analytics/dashboard'),
+  getPopularCourses: (limit = 5) => api.get(`/courses/popular?limit=${limit}`),
+  getRecommendedCourses: (limit = 5) => api.get(`/courses/recommended?limit=${limit}`),
+  getRecentCourses: (limit = 5) => api.get(`/courses/recent?limit=${limit}`),
+  getUserStats: () => api.get('/analytics/users'),
+  getProjectStats: () => api.get('/analytics/projects'),
+  getCourseStats: () => api.get('/analytics/courses'),
+};
+
+// Additional dashboard exports
+export const fetchDashboardOverview = dashboardAPI.getOverview;
 
 // Utility function to handle API errors
 export const handleApiError = (error) => {

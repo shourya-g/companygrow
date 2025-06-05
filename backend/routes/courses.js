@@ -1,51 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const courseController = require('../controllers/courseController');
-const { auth, requireRole, optionalAuth } = require('../middleware/auth');
 
-// @route   GET /api/courses
-// @desc    Get all courses with filtering and search
-// @access  Public (with optional auth for personalized results)
-router.get('/', optionalAuth, courseController.getAllCourses);
+// GET /api/courses - Get all courses
+router.get('/', courseController.getAllCourses);
 
-// @route   GET /api/courses/categories
-// @desc    Get all course categories
-// @access  Public
-router.get('/categories', courseController.getCourseCategories);
-
-// @route   GET /api/courses/popular
-// @desc    Get popular courses
-// @access  Public
+// GET /api/courses/popular - Get popular courses (must be before /:id route)
 router.get('/popular', courseController.getPopularCourses);
 
-// @route   GET /api/courses/recommended
-// @desc    Get recommended courses for current user
-// @access  Private
-router.get('/recommended', auth, courseController.getRecommendedCourses);
+// GET /api/courses/recommended - Get recommended courses
+router.get('/recommended', courseController.getRecommendedCourses);
 
-// @route   GET /api/courses/:id
-// @desc    Get course by ID with detailed information
-// @access  Public (with optional auth for enrollment status)
-router.get('/:id', optionalAuth, courseController.getCourseById);
+// GET /api/courses/recent - Get recent courses
+router.get('/recent', courseController.getRecentCourses);
 
-// @route   POST /api/courses
-// @desc    Create new course
-// @access  Private (Admin/Manager)
-router.post('/', auth, requireRole(['admin', 'manager']), courseController.createCourse);
+// GET /api/courses/:id - Get course by ID
+router.get('/:id', courseController.getCourseById);
 
-// @route   PUT /api/courses/:id
-// @desc    Update course
-// @access  Private (Creator/Admin/Manager)
-router.put('/:id', auth, courseController.updateCourse);
+// POST /api/courses - Create new course (admin/manager only)
+router.post('/', courseController.createCourse);
 
-// @route   DELETE /api/courses/:id
-// @desc    Delete course (only if no enrollments)
-// @access  Private (Creator/Admin/Manager)
-router.delete('/:id', auth, courseController.deleteCourse);
+// PUT /api/courses/:id - Update course
+router.put('/:id', courseController.updateCourse);
 
-// @route   PATCH /api/courses/:id/status
-// @desc    Toggle course active status
-// @access  Private (Admin/Manager)
-router.patch('/:id/status', auth, requireRole(['admin', 'manager']), courseController.toggleCourseStatus);
+// DELETE /api/courses/:id - Delete course
+router.delete('/:id', courseController.deleteCourse);
 
 module.exports = router;

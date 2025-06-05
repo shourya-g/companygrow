@@ -92,7 +92,7 @@ app.use('/api/userTokens', auth, require('./routes/userTokens'));
 app.use('/api/tokenTransactions', auth, require('./routes/tokenTransactions'));
 
 // Admin-only routes
-app.use('/api/analytics', auth, requireRole(['admin', 'manager']), require('./routes/analytics'));
+app.use('/api/analytics', auth, require('./routes/analytics'));
 app.use('/api/appSettings', auth, requireRole(['admin']), require('./routes/appSettings'));
 app.use('/api/performanceReviews', auth, requireRole(['admin', 'manager']), require('./routes/performanceReviews'));
 
