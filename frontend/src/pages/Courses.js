@@ -1,13 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { fetchCourses, createCourse, deleteCourse } from '../services/api';
+import { fetchCourses, createCourse, deleteCourse, courseEnrollmentsAPI } from '../services/api';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 const Courses = () => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newCourse, setNewCourse] = useState({ title: '', description: '' });
   const [creating, setCreating] = useState(false);
+  const [enrollingId, setEnrollingId] = useState(null);
+  const [enrollError, setEnrollError] = useState(null);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
   const authUser = useSelector(state => state.auth.user);
 
   const loadCourses = useCallback(async () => {
@@ -37,6 +42,26 @@ const Courses = () => {
     loadCourses();
   }, [loadCourses]);
 
+  // Optionally, fetch user's enrollments to disable button if already enrolled
+  useEffect(() => {    async function fetchEnrollments() {
+      if (!authUser) return;
+      try {
+        const res = await courseEnrollmentsAPI.getUserEnrollments(authUser.id);
+        // Debug: Log the response to see the structure
+        console.log('Enrollment response:', res);
+        console.log('Enrollment data:', res.data);
+        
+        // Fixed: properly access the data structure from the API response
+        const enrolledIds = Array.isArray(res.data.data) ? res.data.data.map(e => e.course_id) : [];
+        console.log('Enrolled course IDs:', enrolledIds);
+        setEnrolledCourses(enrolledIds);
+      } catch (e) {
+        console.error('Error fetching enrollments:', e);
+      }
+    }
+    fetchEnrollments();
+  }, [authUser]);
+
   const handleInputChange = (e) => {
     setNewCourse({ ...newCourse, [e.target.name]: e.target.value });
   };
@@ -64,6 +89,46 @@ const Courses = () => {
     } catch (err) {
       setError('Failed to delete course');
     }
+  };
+
+  const handleEnroll = async (courseId) => {
+    setEnrollingId(courseId);
+    setEnrollError(null);
+    try {
+      await courseEnrollmentsAPI.enroll({ course_id: courseId });
+      
+      // Immediately update local state
+      setEnrolledCourses([...enrolledCourses, courseId]);
+        // Also refresh enrollment data from server
+      if (authUser) {
+        try {
+          const res = await courseEnrollmentsAPI.getUserEnrollments(authUser.id);
+          const enrolledIds = Array.isArray(res.data.data) ? res.data.data.map(e => e.course_id) : [];
+          setEnrolledCourses(enrolledIds);
+        } catch (e) {
+          console.error('Error refreshing enrollments:', e);
+        }
+      }
+    } catch (err) {
+      if (err?.response?.status === 409) {
+        // Already enrolled: optimistically update UI
+        setEnrolledCourses([...enrolledCourses, courseId]);
+        setEnrollError('You are already enrolled in this course.');
+          // Refresh enrollment data to be sure
+        if (authUser) {
+          try {
+            const res = await courseEnrollmentsAPI.getUserEnrollments(authUser.id);
+            const enrolledIds = Array.isArray(res.data.data) ? res.data.data.map(e => e.course_id) : [];
+            setEnrolledCourses(enrolledIds);
+          } catch (e) {
+            console.error('Error refreshing enrollments after 409:', e);
+          }
+        }
+      } else {
+        setEnrollError('Failed to enroll in course.');
+      }
+    }
+    setEnrollingId(null);
   };
 
   // Check if user can create courses (admin/manager only)
@@ -124,6 +189,7 @@ const Courses = () => {
       )}
 
       {error && <div className="text-red-600 mb-4 bg-red-50 p-3 rounded">{error}</div>}
+      {enrollError && <div className="text-red-600 mb-2">{enrollError}</div>}
       
       {loading ? (
         <div className="flex justify-center items-center h-64">
@@ -172,10 +238,22 @@ const Courses = () => {
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors text-sm">
-                      Enroll
-                    </button>
-                    
+                    {enrolledCourses.includes(course.id) ? (
+                      <button
+                        onClick={() => navigate(`/courses/${course.id}`)}
+                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-sm"
+                      >
+                        Go to Course
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleEnroll(course.id)}
+                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors text-sm"
+                        disabled={enrollingId !== null}
+                      >
+                        {enrollingId === course.id ? 'Enrolling...' : 'Enroll'}
+                      </button>
+                    )}
                     {canDeleteCourse(course) && (
                       <button 
                         onClick={() => handleDelete(course.id)} 
