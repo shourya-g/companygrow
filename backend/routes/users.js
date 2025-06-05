@@ -4,6 +4,9 @@ const userController = require('../controllers/userController');
 const { auth, requireRole } = require('../middleware/auth');
 const { validateUserUpdate } = require('../middleware/validation');
 
+// Public registration route (no auth required)
+router.post('/register', userController.registerUser);
+
 // @route   GET /api/users
 // @desc    Get all users
 // @access  Private (Admin only)

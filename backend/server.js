@@ -58,6 +58,9 @@ app.use('/uploads', express.static('uploads'));
 // Public Routes (no authentication required)
 app.use('/api/auth', authLimiter, require('./routes/auth'));
 
+// Public registration route (no auth required)
+app.use('/api/users', require('./routes/users'));
+
 // Debug routes (temporary - remove in production)
 if (process.env.NODE_ENV !== 'production') {
   try {

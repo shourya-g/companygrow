@@ -11,6 +11,9 @@ import Sidebar from './components/layout/Sidebar';
 // Pages
 import Dashboard from './pages/Dashboard';
 import Courses from './pages/Courses';
+import CourseDetail from './pages/CourseDetail';
+import CourseForm from './pages/CourseForm';
+import MyEnrollments from './pages/MyEnrollments';
 import Projects from './pages/Projects';
 import Profile from './pages/Profile';
 import Analytics from './pages/Analytics';
@@ -182,6 +185,7 @@ function AppContent() {
           </RequireAuth>
         } />
 
+        {/* Course Management Routes */}
         <Route path="/courses" element={
           <RequireAuth>
             <MainLayout>
@@ -190,6 +194,39 @@ function AppContent() {
           </RequireAuth>
         } />
 
+        <Route path="/courses/create" element={
+          <RequireAuth requiredRole={['admin', 'manager']}>
+            <MainLayout>
+              <CourseForm />
+            </MainLayout>
+          </RequireAuth>
+        } />
+
+        <Route path="/courses/:id" element={
+          <RequireAuth>
+            <MainLayout>
+              <CourseDetail />
+            </MainLayout>
+          </RequireAuth>
+        } />
+
+        <Route path="/courses/:id/edit" element={
+          <RequireAuth requiredRole={['admin', 'manager']}>
+            <MainLayout>
+              <CourseForm />
+            </MainLayout>
+          </RequireAuth>
+        } />
+
+        <Route path="/my-enrollments" element={
+          <RequireAuth>
+            <MainLayout>
+              <MyEnrollments />
+            </MainLayout>
+          </RequireAuth>
+        } />
+
+        {/* Other Protected Routes */}
         <Route path="/projects" element={
           <RequireAuth>
             <MainLayout>

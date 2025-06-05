@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
-import { usersAPI, handleApiError, skillUtils } from '../services/api';
+import { usersAPI, handleApiError } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import UserSkillManagement from '../components/UserSkillManagement';
 import { 
@@ -9,6 +9,7 @@ import {
   TrendingUp, Award, BookOpen, LogOut, Edit,
   CheckCircle, Clock, Star
 } from 'lucide-react';
+import { calculatePortfolioScore } from '../utils/portfolio';
 
 const Profile = () => {
   const user = useSelector(state => state.auth.user);
@@ -145,7 +146,7 @@ const Profile = () => {
 
     const verifiedSkills = userSkills.filter(skill => skill.is_verified).length;
     const averageProficiency = userSkills.reduce((sum, skill) => sum + skill.proficiency_level, 0) / userSkills.length;
-    const portfolioScore = skillUtils.calculatePortfolioScore(userSkills);
+    const portfolioScore = calculatePortfolioScore(userSkills);
     
     // Calculate category distribution
     const categoryCount = {};
