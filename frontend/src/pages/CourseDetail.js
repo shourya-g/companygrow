@@ -29,10 +29,28 @@ const CourseDetail = () => {
   const [error, setError] = useState(null);
   const [enrolling, setEnrolling] = useState(false);
   const [enrollmentError, setEnrollmentError] = useState(null);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [enrollingId, setEnrollingId] = useState(null);
 
   useEffect(() => {
     loadCourse();
   }, [id]);
+
+  useEffect(() => {
+    async function fetchEnrollments() {
+      if (!user) return;
+      try {
+        const enrollmentAPI = await import('../services/api').then(m => m.courseEnrollmentsAPI);
+        const res = await enrollmentAPI.getUserEnrollments(user.id);
+        if (res.data && Array.isArray(res.data.data)) {
+          setEnrolledCourses(res.data.data.map(e => e.course_id));
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    fetchEnrollments();
+  }, [user]);
 
   const loadCourse = async () => {
     setLoading(true);
@@ -57,32 +75,24 @@ const CourseDetail = () => {
     setLoading(false);
   };
 
-  const handleEnrollment = async () => {
+  const handleEnroll = async (courseId) => {
     if (!user) {
       navigate('/login');
       return;
     }
-
-    setEnrolling(true);
+    setEnrollingId(courseId);
     setEnrollmentError(null);
-    
     try {
       const enrollmentAPI = await import('../services/api').then(m => m.courseEnrollmentsAPI);
-      const response = await enrollmentAPI.enroll({
-        course_id: course.id,
-        user_id: user.id
-      });
-      
+      const response = await enrollmentAPI.enroll({ course_id: courseId, user_id: user.id });
       if (response.data.success) {
-        // Reload course to get updated enrollment status
-        loadCourse();
+        setEnrolledCourses([...enrolledCourses, courseId]);
+        loadCourse(); // Optionally reload course details
       }
     } catch (err) {
-      console.error('Enrollment error:', err);
       setEnrollmentError(err.response?.data?.error?.message || 'Failed to enroll in course');
     }
-    
-    setEnrolling(false);
+    setEnrollingId(null);
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -208,23 +218,19 @@ const CourseDetail = () => {
         </div>
         <div className="mb-6">
           <h3 className="font-semibold text-lg text-gray-900 mb-2">Enrollment</h3>
-          {getEnrollmentStatus() === 'not_enrolled' ? (
-            <button
-              onClick={handleEnrollment}
-              disabled={enrolling}
-              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              {enrolling ? 'Enrolling...' : 'Enroll in Course'}
-            </button>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="text-green-700 font-medium">Enrolled ({getEnrollmentStatus()})</span>
-              {getEnrollmentProgress() > 0 && (
-                <span className="ml-2 text-gray-600">Progress: {getEnrollmentProgress()}%</span>
-              )}
-            </div>
-          )}
+          <div className="flex justify-between items-center">
+            {enrolledCourses.includes(course.id) ? (
+              <span className="text-green-700 font-medium flex items-center"><CheckCircle className="w-5 h-5 text-green-600 mr-1" />Enrolled</span>
+            ) : (
+              <button
+                onClick={() => handleEnroll(course.id)}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors text-sm"
+                disabled={enrollingId !== null}
+              >
+                {enrollingId === course.id ? 'Enrolling...' : 'Enroll'}
+              </button>
+            )}
+          </div>
           {enrollmentError && (
             <div className="text-red-600 mt-2">{enrollmentError}</div>
           )}
