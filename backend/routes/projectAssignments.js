@@ -8,6 +8,16 @@ const { auth, requireRole } = require('../middleware/auth');
 // @access  Private (Admin/Manager)
 router.get('/', auth, requireRole(['admin', 'manager']), projectAssignmentController.getAllProjectAssignments);
 
+// @route   GET /api/projectAssignments/statistics
+// @desc    Get assignment statistics
+// @access  Private (Admin/Manager)
+router.get('/statistics', auth, requireRole(['admin', 'manager']), projectAssignmentController.getAssignmentStatistics);
+
+// @route   GET /api/projectAssignments/recommendations/:projectId
+// @desc    Get skill-based assignment recommendations for a project
+// @access  Private (Admin/Manager)
+router.get('/recommendations/:projectId', auth, requireRole(['admin', 'manager']), projectAssignmentController.getAssignmentRecommendations);
+
 // @route   GET /api/projectAssignments/:id
 // @desc    Get project assignment by ID
 // @access  Private

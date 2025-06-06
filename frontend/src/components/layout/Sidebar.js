@@ -8,7 +8,6 @@ import {
   User, 
   BarChart3,
   Award,
-  GraduationCap,
   Users,
   Settings,
   UserCheck
@@ -17,12 +16,10 @@ import {
 const Sidebar = () => {
   const { user } = useSelector(state => state.auth);
   
-  // Navigation items based on user role
   const getNavItems = () => {
     const baseItems = [
       { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
       { to: '/courses', icon: BookOpen, label: 'Courses' },
-      { to: '/my-enrollments', icon: GraduationCap, label: 'My Learning' },
       { to: '/projects', icon: FolderOpen, label: 'Projects' },
       { to: '/profile', icon: User, label: 'Profile' },
     ];
