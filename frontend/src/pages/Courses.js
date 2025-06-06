@@ -18,6 +18,7 @@ import {
   List
 } from 'lucide-react';
 import { coursesAPI, skillsAPI } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
@@ -51,6 +52,7 @@ const Courses = () => {
   });
 
   const authUser = useSelector(state => state.auth.user);
+  const navigate = useNavigate();
 
   // Load initial data
   useEffect(() => {
@@ -352,6 +354,12 @@ const Courses = () => {
               {enrolling[course.id] ? 'Enrolling...' : 'Enroll'}
             </button>
           )}
+          <button
+            onClick={() => navigate(`/courses/${course.id}`)}
+            className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 text-sm font-medium border border-gray-300"
+          >
+            View Details
+          </button>
         </div>
       </div>
     </div>
@@ -472,6 +480,12 @@ const Courses = () => {
               {enrolling[course.id] ? 'Enrolling...' : 'Enroll'}
             </button>
           )}
+          <button
+            onClick={() => navigate(`/courses/${course.id}`)}
+            className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 text-sm font-medium border border-gray-300"
+          >
+            View Details
+          </button>
         </div>
       </div>
     </div>
