@@ -20,6 +20,7 @@ const Sidebar = () => {
     const baseItems = [
       { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
       { to: '/courses', icon: BookOpen, label: 'Courses' },
+      { to: '/my-enrollments', icon: Award, label: 'My Learning' },
       { to: '/projects', icon: FolderOpen, label: 'Projects' },
       { to: '/profile', icon: User, label: 'Profile' },
     ];

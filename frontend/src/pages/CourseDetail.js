@@ -36,6 +36,7 @@ const CourseDetail = () => {
 
   useEffect(() => {
     loadCourse();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const loadCourse = async () => {
@@ -105,6 +106,18 @@ const CourseDetail = () => {
     }
   };
 
+  // Delete course handler
+  const handleDeleteCourse = async () => {
+    if (!window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) return;
+    try {
+      await coursesAPI.delete(id);
+      alert('Course deleted successfully.');
+      navigate('/courses');
+    } catch (err) {
+      alert(err.response?.data?.error?.message || 'Failed to delete course');
+    }
+  };
+
   const getDifficultyColor = (level) => {
     switch (level) {
       case 'beginner': return 'bg-green-100 text-green-800';
@@ -165,7 +178,7 @@ const CourseDetail = () => {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Back Button */}
-      <div className="mb-6">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <button
           onClick={() => navigate('/courses')}
           className="flex items-center text-gray-600 hover:text-gray-800 font-medium"
@@ -173,6 +186,23 @@ const CourseDetail = () => {
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Courses
         </button>
+        {/* Delete/Edit buttons for admin/manager/creator */}
+        {authUser && (['admin', 'manager'].includes(authUser.role) || (course.creator && course.creator.id === authUser.id)) && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate(`/courses/${id}/edit`)}
+              className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 font-medium"
+            >
+              Edit
+            </button>
+            <button
+              onClick={handleDeleteCourse}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 font-medium"
+            >
+              Delete
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
