@@ -25,6 +25,7 @@ import Payments from './pages/Payments';
 import Rewards from './pages/Rewards';
 import ProjectAssignments from './pages/ProjectAssignments';
 import MyEnrollments from './pages/MyEnrollments';
+import CourseForm from './pages/CourseForm';
 
 // Loading component
 const LoadingSpinner = () => (
@@ -197,6 +198,22 @@ function AppContent() {
           <RequireAuth>
             <MainLayout>
               <CourseDetail />
+            </MainLayout>
+          </RequireAuth>
+        } />
+
+        {/* Course Creation/Edit Routes - Admin/Manager only */}
+        <Route path="/courses/create" element={
+          <RequireAuth requiredRole={['admin', 'manager']}>
+            <MainLayout>
+              <CourseForm />
+            </MainLayout>
+          </RequireAuth>
+        } />
+        <Route path="/courses/:id/edit" element={
+          <RequireAuth requiredRole={['admin', 'manager']}>
+            <MainLayout>
+              <CourseForm />
             </MainLayout>
           </RequireAuth>
         } />

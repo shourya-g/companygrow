@@ -480,9 +480,20 @@ const Courses = () => {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Courses</h1>
-        <p className="text-gray-600 mt-2">Discover and enroll in courses to enhance your skills</p>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Courses</h1>
+          <p className="text-gray-600 mt-2">Discover and enroll in courses to enhance your skills</p>
+        </div>
+        {/* Create Course Button for admin/manager */}
+        {authUser && (authUser.role === 'admin' || authUser.role === 'manager') && (
+          <a
+            href="/courses/create"
+            className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition-colors text-base text-center"
+          >
+            + Create Course
+          </a>
+        )}
       </div>
 
       {/* Search and Filters */}
