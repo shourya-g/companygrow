@@ -221,62 +221,21 @@ export const courseSkillsAPI = {
 export const projectAssignmentsAPI = {
   getAll: () => api.get('/projectAssignments'),
   getById: (id) => api.get(`/projectAssignments/${id}`),
+  getRecommendations: (projectId) => api.get(`/projectAssignments/recommendations/${projectId}`),
+  getStatistics: () => api.get('/projectAssignments/statistics'),
   getUserAssignments: (userId) => api.get(`/projectAssignments/user/${userId}`),
   getProjectAssignments: (projectId) => api.get(`/projectAssignments/project/${projectId}`),
-  assign: (data) => api.post('/projectAssignments', data),
+  assignUser: (data) => api.post('/projectAssignments', data),
   update: (id, data) => api.put(`/projectAssignments/${id}`, data),
   remove: (id) => api.delete(`/projectAssignments/${id}`),
 };
 
-// PROJECT SKILLS API
-export const projectSkillsAPI = {
-  getAll: () => api.get('/projectSkills'),
-  getById: (id) => api.get(`/projectSkills/${id}`),
-  getProjectSkills: (projectId) => api.get(`/projectSkills/project/${projectId}`),
-  getSkillProjects: (skillId) => api.get(`/projectSkills/skill/${skillId}`),
-  getAnalysis: (projectId) => api.get(`/projectSkills/analysis/${projectId}`),
-  addSkillToProject: (data) => api.post('/projectSkills', data),
-  updateProjectSkill: (id, data) => api.put(`/projectSkills/${id}`, data),
-  removeSkillFromProject: (id) => api.delete(`/projectSkills/${id}`),
-};
-
-// USER TOKENS API
-export const userTokensAPI = {
-  getAll: () => api.get('/userTokens'),
-  getById: (id) => api.get(`/userTokens/${id}`),
-  getUserTokens: (userId) => api.get(`/userTokens/user/${userId}`),
-  addTokens: (userId, data) => api.post(`/userTokens/${userId}/add`, data),
-  spendTokens: (userId, data) => api.post(`/userTokens/${userId}/spend`, data),
-};
-
-// TOKEN TRANSACTIONS API
-export const tokenTransactionsAPI = {
-  getAll: () => api.get('/tokenTransactions'),
-  getById: (id) => api.get(`/tokenTransactions/${id}`),
-  getUserTransactions: (userId) => api.get(`/tokenTransactions/user/${userId}`),
-  create: (data) => api.post('/tokenTransactions', data),
-};
-
-// PERFORMANCE REVIEWS API
-export const performanceReviewsAPI = {
-  getAll: () => api.get('/performanceReviews'),
-  getById: (id) => api.get(`/performanceReviews/${id}`),
-  getUserReviews: (userId) => api.get(`/performanceReviews/user/${userId}`),
-  create: (data) => api.post('/performanceReviews', data),
-  update: (id, data) => api.put(`/performanceReviews/${id}`, data),
-  delete: (id) => api.delete(`/performanceReviews/${id}`),
-  submit: (id) => api.put(`/performanceReviews/${id}/submit`),
-  approve: (id) => api.put(`/performanceReviews/${id}/approve`),
-};
-
-// APP SETTINGS API
-export const appSettingsAPI = {
-  getAll: () => api.get('/appSettings'),
-  getByKey: (key) => api.get(`/appSettings/${key}`),
-  update: (key, data) => api.put(`/appSettings/${key}`, data),
-  create: (data) => api.post('/appSettings', data),
-  delete: (key) => api.delete(`/appSettings/${key}`),
-};
+// Legacy project assignment exports (for backward compatibility)
+export const fetchProjectAssignments = projectAssignmentsAPI.getAll;
+export const createProjectAssignment = projectAssignmentsAPI.assignUser;
+export const updateProjectAssignment = projectAssignmentsAPI.update;
+export const deleteProjectAssignment = projectAssignmentsAPI.remove;
+export const fetchAssignmentRecommendations = projectAssignmentsAPI.getRecommendations;
 
 // ANALYTICS API
 export const analyticsAPI = {
@@ -324,22 +283,3 @@ export const tokenUtils = {
     }
   },
 };
-// PROJECT ASSIGNMENTS API
-export const projectAssignmentsAPI = {
-  getAll: () => api.get('/projectAssignments'),
-  getById: (id) => api.get(`/projectAssignments/${id}`),
-  getRecommendations: (projectId) => api.get(`/projectAssignments/recommendations/${projectId}`),
-  getStatistics: () => api.get('/projectAssignments/statistics'),
-  getUserAssignments: (userId) => api.get(`/projectAssignments/user/${userId}`),
-  getProjectAssignments: (projectId) => api.get(`/projectAssignments/project/${projectId}`),
-  assignUser: (data) => api.post('/projectAssignments', data),
-  update: (id, data) => api.put(`/projectAssignments/${id}`, data),
-  remove: (id) => api.delete(`/projectAssignments/${id}`),
-};
-
-// Legacy project assignment exports (for backward compatibility)
-export const fetchProjectAssignments = projectAssignmentsAPI.getAll;
-export const createProjectAssignment = projectAssignmentsAPI.assignUser;
-export const updateProjectAssignment = projectAssignmentsAPI.update;
-export const deleteProjectAssignment = projectAssignmentsAPI.remove;
-export const fetchAssignmentRecommendations = projectAssignmentsAPI.getRecommendations;
