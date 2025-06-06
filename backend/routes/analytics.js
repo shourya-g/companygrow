@@ -70,4 +70,7 @@ router.get('/tokens', (req, res) => {
   analyticsController.getTokenStats(req, res);
 });
 
+// GET /api/analytics/performance/monthly - Monthly training/project/badge analytics
+router.get('/performance/monthly', analyticsController.getMonthlyTrainingStats);
+
 module.exports = router;

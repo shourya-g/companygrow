@@ -1,5 +1,5 @@
 // backend/controllers/analyticsController.js
-const { User, Project, Skill, Course, Payment, TokenTransaction, CourseEnrollment } = require('../models');
+const { User, Project, Skill, Course, Payment, TokenTransaction, CourseEnrollment, UserBadge } = require('../models');
 
 // Get overall user statistics
 exports.getUserStats = async (req, res) => {
@@ -236,5 +236,60 @@ exports.getDashboardOverview = async (req, res) => {
         code: 'FETCH_DASHBOARD_OVERVIEW_ERROR'
       }
     });
+  }
+};
+
+// Helper to generate last N months with labels and date ranges
+function getLastNMonths(n) {
+  const now = new Date();
+  return Array.from({ length: n }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1);
+    return {
+      label: d.toLocaleString('default', { month: 'short', year: '2-digit' }),
+      start: new Date(d.getFullYear(), d.getMonth(), 1),
+      end: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
+    };
+  });
+}
+
+// Helper to count records for each month elegantly
+async function getMonthlyCounts(model, dateField, months, extraWhere = {}) {
+  const { Op } = require('sequelize');
+  return Promise.all(
+    months.map(async m =>
+      await model.count({
+        where: {
+          [dateField]: { [Op.between]: [m.start, m.end] },
+          ...extraWhere
+        }
+      })
+    )
+  );
+}
+
+// Get monthly training (course) metrics - elegant version
+exports.getMonthlyTrainingStats = async (req, res) => {
+  try {
+    const { CourseEnrollment, ProjectAssignment, UserBadge } = require('../models');
+    const months = getLastNMonths(6);
+    // Training (course) enrollments/completions
+    const [enrollments, completions] = await Promise.all([
+      getMonthlyCounts(CourseEnrollment, 'enrollment_date', months),
+      getMonthlyCounts(CourseEnrollment, 'completion_date', months, { status: 'completed' })
+    ]);
+    const trainingStats = months.map((m, i) => ({ month: m.label, enrollments: enrollments[i], completions: completions[i] }));
+    // Project assignments/completions
+    const [assigned, completed] = await Promise.all([
+      getMonthlyCounts(ProjectAssignment, 'assignment_date', months),
+      getMonthlyCounts(ProjectAssignment, 'updated_at', months, { status: 'completed' })
+    ]);
+    const projectStats = months.map((m, i) => ({ month: m.label, assigned: assigned[i], completed: completed[i] }));
+    // Badges earned
+    const earned = await getMonthlyCounts(UserBadge, 'earned_date', months);
+    const badgeStats = months.map((m, i) => ({ month: m.label, earned: earned[i] }));
+    res.json({ success: true, data: { trainingStats, projectStats, badgeStats } });
+  } catch (err) {
+    console.error('Get monthly analytics error:', err);
+    res.status(500).json({ success: false, error: { message: 'Failed to fetch monthly analytics', code: 'FETCH_MONTHLY_ANALYTICS_ERROR' } });
   }
 };

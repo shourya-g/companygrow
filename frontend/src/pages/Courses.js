@@ -17,7 +17,7 @@ import {
   Grid,
   List
 } from 'lucide-react';
-import { coursesAPI, skillsAPI } from '../services/api';
+import { coursesAPI, skillsAPI, courseEnrollmentAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
 const Courses = () => {
@@ -53,6 +53,9 @@ const Courses = () => {
 
   const authUser = useSelector(state => state.auth.user);
   const navigate = useNavigate();
+
+  // Add state for updating progress
+  const [updatingProgress, setUpdatingProgress] = useState({});
 
   // Load initial data
   useEffect(() => {
@@ -198,6 +201,19 @@ const Courses = () => {
       alert(errorMessage);
     }
     setEnrolling(prev => ({ ...prev, [courseId]: false }));
+  };
+
+  // Add updateProgress handler
+  const updateProgress = async (enrollmentId, progressData) => {
+    setUpdatingProgress(prev => ({ ...prev, [enrollmentId]: true }));
+    try {
+      await courseEnrollmentAPI.updateProgress(enrollmentId, progressData);
+      // Refresh courses after update
+      loadCourses();
+    } catch (err) {
+      alert('Failed to update progress: ' + (err.response?.data?.error?.message || err.message));
+    }
+    setUpdatingProgress(prev => ({ ...prev, [enrollmentId]: false }));
   };
 
   const getDifficultyColor = (level) => {
@@ -361,6 +377,38 @@ const Courses = () => {
             View Details
           </button>
         </div>
+
+        {/* Progress Update - if enrolled and not completed */}
+        {course.is_enrolled && course.enrollment_status !== 'completed' && course.CourseEnrollments?.[0] && (
+          <div className="mt-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-gray-600">Progress</span>
+              <span className="text-xs text-gray-600">{course.CourseEnrollments[0].progress_percentage || 0}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${course.CourseEnrollments[0].progress_percentage || 0}%` }}
+              ></div>
+            </div>
+            <div className="flex gap-1">
+              {[25, 50, 75, 100].map(percentage => (
+                <button
+                  key={percentage}
+                  onClick={() => updateProgress(course.CourseEnrollments[0].id, { progress_percentage: percentage, status: percentage === 100 ? 'completed' : 'in_progress' })}
+                  disabled={updatingProgress[course.CourseEnrollments[0].id] || (course.CourseEnrollments[0].progress_percentage || 0) >= percentage}
+                  className={`text-xs px-2 py-1 rounded ${
+                    (course.CourseEnrollments[0].progress_percentage || 0) >= percentage 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'
+                  } disabled:opacity-50`}
+                >
+                  {percentage}%
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -488,6 +536,38 @@ const Courses = () => {
           </button>
         </div>
       </div>
+
+      {/* Progress Update - if enrolled and not completed */}
+      {course.is_enrolled && course.enrollment_status !== 'completed' && course.CourseEnrollments?.[0] && (
+        <div className="mt-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-gray-600">Progress</span>
+            <span className="text-xs text-gray-600">{course.CourseEnrollments[0].progress_percentage || 0}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${course.CourseEnrollments[0].progress_percentage || 0}%` }}
+            ></div>
+          </div>
+          <div className="flex gap-1">
+            {[25, 50, 75, 100].map(percentage => (
+              <button
+                key={percentage}
+                onClick={() => updateProgress(course.CourseEnrollments[0].id, { progress_percentage: percentage, status: percentage === 100 ? 'completed' : 'in_progress' })}
+                disabled={updatingProgress[course.CourseEnrollments[0].id] || (course.CourseEnrollments[0].progress_percentage || 0) >= percentage}
+                className={`text-xs px-2 py-1 rounded ${
+                  (course.CourseEnrollments[0].progress_percentage || 0) >= percentage 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'
+                } disabled:opacity-50`}
+              >
+                {percentage}%
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 

@@ -1,19 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { fetchCourses, fetchSkills, fetchBadges, fetchProjects } from '../services/api';
+import { fetchCourses, fetchSkills, fetchBadges, fetchProjects, analyticsAPI } from '../services/api';
 import { Bar, Pie } from 'react-chartjs-2';
-import { Chart, CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend } from 'chart.js';
-Chart.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
+import { Chart, CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend, PointElement, LineElement } from 'chart.js';
+import { TrainingPerformanceChart, ProjectPerformanceChart, BadgePerformanceChart } from '../components/analytics/PerformanceCharts';
+Chart.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend, PointElement, LineElement);
 
 const Analytics = () => {
   const [courses, setCourses] = useState([]);
   const [skills, setSkills] = useState([]);
   const [badges, setBadges] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [monthlyPerformance, setMonthlyPerformance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     loadAnalytics();
+    analyticsAPI.getMonthlyPerformance().then(res => {
+      if (res.data.success) setMonthlyPerformance(res.data.data);
+    });
   }, []);
 
   const loadAnalytics = async () => {
@@ -94,6 +99,22 @@ const Analytics = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="font-semibold text-md mb-2">Projects</h2>
             <Bar data={projectData} />
+          </div>
+        </div>
+      )}
+      {monthlyPerformance && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="font-semibold text-md mb-2">Training (Courses) - Last 6 Months</h2>
+            <TrainingPerformanceChart data={monthlyPerformance.trainingStats} />
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="font-semibold text-md mb-2">Projects - Last 6 Months</h2>
+            <ProjectPerformanceChart data={monthlyPerformance.projectStats} />
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="font-semibold text-md mb-2">Badges Earned - Last 6 Months</h2>
+            <BadgePerformanceChart data={monthlyPerformance.badgeStats} />
           </div>
         </div>
       )}

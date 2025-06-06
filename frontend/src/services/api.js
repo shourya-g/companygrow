@@ -246,6 +246,7 @@ export const analyticsAPI = {
   getCourseStats: () => api.get('/analytics/courses'),
   getPaymentStats: () => api.get('/analytics/payments'),
   getTokenStats: () => api.get('/analytics/tokens'),
+  getMonthlyPerformance: () => api.get('/analytics/performance/monthly'),
 };
 
 // Utility function to handle API errors

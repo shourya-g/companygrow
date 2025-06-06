@@ -369,8 +369,8 @@ const CourseForm = () => {
                 placeholder="e.g., Programming, Design, Marketing"
               />
               <datalist id="categories">
-                {categories.map(category => (
-                  <option key={category} value={category} />
+                {categories.map((category, idx) => (
+                  <option key={category + '-' + idx} value={category} />
                 ))}
               </datalist>
               {fieldErrors.category && (
