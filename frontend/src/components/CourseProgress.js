@@ -9,7 +9,7 @@ import {
   Calendar,
   Target
 } from 'lucide-react';
-import { courseEnrollmentsAPI } from '../services/api';
+import { courseEnrollmentAPI } from '../services/api';
 
 const CourseProgress = ({ enrollment, course, onProgressUpdate }) => {
   const [updating, setUpdating] = useState(false);
@@ -28,7 +28,7 @@ const CourseProgress = ({ enrollment, course, onProgressUpdate }) => {
         status: newStatus
       };
 
-      const response = await courseEnrollmentsAPI.updateProgress(enrollment.id, updateData);
+      const response = await courseEnrollmentAPI.updateProgress(enrollment.id, updateData);
       
       if (response.data.success) {
         onProgressUpdate(response.data.data);

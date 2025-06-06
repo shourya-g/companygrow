@@ -12,8 +12,6 @@ import Sidebar from './components/layout/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
-import CourseForm from './pages/CourseForm';
-import MyEnrollments from './pages/MyEnrollments';
 import Projects from './pages/Projects';
 import Profile from './pages/Profile';
 import Analytics from './pages/Analytics';
@@ -26,6 +24,7 @@ import Notifications from './pages/Notifications';
 import Payments from './pages/Payments';
 import Rewards from './pages/Rewards';
 import ProjectAssignments from './pages/ProjectAssignments';
+import MyEnrollments from './pages/MyEnrollments';
 
 // Loading component
 const LoadingSpinner = () => (
@@ -185,19 +184,11 @@ function AppContent() {
           </RequireAuth>
         } />
 
-        {/* Course Management Routes */}
+        {/* Course Routes */}
         <Route path="/courses" element={
           <RequireAuth>
             <MainLayout>
               <Courses />
-            </MainLayout>
-          </RequireAuth>
-        } />
-
-        <Route path="/courses/create" element={
-          <RequireAuth requiredRole={['admin', 'manager']}>
-            <MainLayout>
-              <CourseForm />
             </MainLayout>
           </RequireAuth>
         } />
@@ -210,23 +201,7 @@ function AppContent() {
           </RequireAuth>
         } />
 
-        <Route path="/courses/:id/edit" element={
-          <RequireAuth requiredRole={['admin', 'manager']}>
-            <MainLayout>
-              <CourseForm />
-            </MainLayout>
-          </RequireAuth>
-        } />
-
-        <Route path="/my-enrollments" element={
-          <RequireAuth>
-            <MainLayout>
-              <MyEnrollments />
-            </MainLayout>
-          </RequireAuth>
-        } />
-
-        {/* Other Protected Routes */}
+        {/* Project Routes */}
         <Route path="/projects" element={
           <RequireAuth>
             <MainLayout>
@@ -235,6 +210,7 @@ function AppContent() {
           </RequireAuth>
         } />
 
+        {/* Skill and Badge Routes */}
         <Route path="/skills" element={
           <RequireAuth>
             <MainLayout>
@@ -251,6 +227,7 @@ function AppContent() {
           </RequireAuth>
         } />
 
+        {/* Notification and Payment Routes */}
         <Route path="/notifications" element={
           <RequireAuth>
             <MainLayout>
@@ -271,6 +248,15 @@ function AppContent() {
           <RequireAuth>
             <MainLayout>
               <Rewards />
+            </MainLayout>
+          </RequireAuth>
+        } />
+
+        {/* My Learning / Enrollments Route */}
+        <Route path="/my-learning" element={
+          <RequireAuth>
+            <MainLayout>
+              <MyEnrollments />
             </MainLayout>
           </RequireAuth>
         } />
@@ -307,7 +293,12 @@ function AppContent() {
               <div className="text-center py-12">
                 <h1 className="text-2xl font-bold text-gray-900 mb-4">Page Not Found</h1>
                 <p className="text-gray-600 mb-4">The page you're looking for doesn't exist.</p>
-                <Navigate to="/dashboard" replace />
+                <button 
+                  onClick={() => window.location.href = '/dashboard'}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  Go to Dashboard
+                </button>
               </div>
             </MainLayout>
           </RequireAuth>

@@ -1,294 +1,374 @@
 import React, { useEffect, useState } from 'react';
-import { dashboardAPI, courseEnrollmentsAPI, handleApiError } from '../services/api';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { 
+  BookOpen, 
+  Users, 
+  Award, 
+  TrendingUp,
+  Clock,
+  Target,
+  ArrowRight,
+  BarChart3
+} from 'lucide-react';
+import CourseRecommendations from '../components/CourseRecommendations';
+import { usersAPI, coursesAPI } from '../services/api';
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const [dashboardData, setDashboardData] = useState({
-    overview: null,
-    popularCourses: [],
-    recommendedCourses: [],
-    userStats: null,
-    projectStats: null,
-    courseStats: null
-  });
+  const [dashboardData, setDashboardData] = useState(null);
+  const [recentCourses, setRecentCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [enrolling, setEnrolling] = useState({}); // Track enrollment status per course
-  const [enrolledCourses, setEnrolledCourses] = useState([]);
-  const [enrollingId, setEnrollingId] = useState(null);
-  const [enrollError, setEnrollError] = useState(null);
-  
-  const user = useSelector(state => state.auth.user);
+
+  const authUser = useSelector(state => state.auth.user);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  useEffect(() => {
-    // Fetch user's enrollments for button logic
-    async function fetchEnrollments() {
-      if (!user) return;
-      try {
-        const res = await courseEnrollmentsAPI.getUserEnrollments(user.id);
-        const enrolledIds = Array.isArray(res.data?.data) ? res.data.data.map(e => e.course_id) : [];
-        setEnrolledCourses(enrolledIds);
-      } catch (e) {
-        // ignore
-      }
+    if (authUser) {
+      loadDashboardData();
+      loadRecentCourses();
     }
-    fetchEnrollments();
-  }, [user]);
+  }, [authUser]);
 
   const loadDashboardData = async () => {
+    try {
+      const res = await usersAPI.getDashboard(authUser.id);
+      setDashboardData(res.data.data);
+    } catch (err) {
+      console.error('Failed to load dashboard data:', err);
+    }
+  };
+
+  const loadRecentCourses = async () => {
     setLoading(true);
     setError(null);
-    
     try {
-      console.log('Loading dashboard data...');
-      
-      // Load dashboard data with individual error handling
-      const dataPromises = [
-        dashboardAPI.getOverview().catch(err => {
-          console.warn('Overview failed:', err.message);
-          return { status: 'failed', data: null };
-        }),
-        dashboardAPI.getPopularCourses(3).catch(err => {
-          console.warn('Popular courses failed:', err.message);
-          return { status: 'failed', data: { data: [] } };
-        }),
-        dashboardAPI.getRecommendedCourses(3).catch(err => {
-          console.warn('Recommended courses failed:', err.message);
-          return { status: 'failed', data: { data: [] } };
-        }),
-        dashboardAPI.getUserStats().catch(err => {
-          console.warn('User stats failed:', err.message);
-          return { status: 'failed', data: null };
-        }),
-        dashboardAPI.getProjectStats().catch(err => {
-          console.warn('Project stats failed:', err.message);
-          return { status: 'failed', data: null };
-        }),
-        dashboardAPI.getCourseStats().catch(err => {
-          console.warn('Course stats failed:', err.message);
-          return { status: 'failed', data: null };
-        })
-      ];
-
-      const [
-        overviewRes,
-        popularCoursesRes,
-        recommendedCoursesRes,
-        userStatsRes,
-        projectStatsRes,
-        courseStatsRes
-      ] = await Promise.all(dataPromises);
-
-      console.log('Popular courses response:', popularCoursesRes);
-      console.log('Recommended courses response:', recommendedCoursesRes);
-
-      setDashboardData({
-        overview: overviewRes.status !== 'failed' ? overviewRes.data.data : null,
-        popularCourses: popularCoursesRes.status !== 'failed' ? 
-          popularCoursesRes.data.data : [],
-        recommendedCourses: recommendedCoursesRes.status !== 'failed' ? 
-          recommendedCoursesRes.data.data : [],
-        userStats: userStatsRes.status !== 'failed' ? userStatsRes.data.data : null,
-        projectStats: projectStatsRes.status !== 'failed' ? projectStatsRes.data.data : null,
-        courseStats: courseStatsRes.status !== 'failed' ? courseStatsRes.data.data : null
+      const res = await coursesAPI.getAll({ 
+        user_enrolled: 'true', 
+        limit: 4,
+        sort_by: 'created_at',
+        sort_order: 'DESC'
       });
-
-      console.log('Dashboard data loaded successfully');
-
+      setRecentCourses(Array.isArray(res.data.data) ? res.data.data : []);
     } catch (err) {
-      console.error('Dashboard error:', err);
-      setError('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
+      setError('Failed to load recent courses');
+      setRecentCourses([]);
+    }
+    setLoading(false);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed': return 'text-green-600 bg-green-50';
+      case 'in_progress': return 'text-blue-600 bg-blue-50';
+      case 'enrolled': return 'text-yellow-600 bg-yellow-50';
+      default: return 'text-gray-600 bg-gray-50';
     }
   };
 
-  const handleEnroll = async (courseId) => {
-    setEnrollingId(courseId);
-    setEnrollError(null);
-    try {
-      await courseEnrollmentsAPI.enroll({ course_id: courseId });
-      setEnrolledCourses([...enrolledCourses, courseId]);
-    } catch (err) {
-      if (err?.response?.status === 409) {
-        setEnrolledCourses([...enrolledCourses, courseId]);
-        setEnrollError('You are already enrolled in this course.');
-      } else {
-        setEnrollError('Failed to enroll in course.');
-      }
-    }
-    setEnrollingId(null);
-  };
-
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+  const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue' }) => (
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="flex items-center">
+        <div className={`p-3 rounded-lg bg-${color}-100 mr-4`}>
+          <Icon className={`w-6 h-6 text-${color}-600`} />
+        </div>
+        <div>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-gray-600">{title}</p>
+          {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
         </div>
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="text-red-600">{error}</div>
-          <button 
-            onClick={loadDashboardData}
-            className="mt-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome to your CompanyGrow dashboard</p>
-        
-        {/* Debug Button - Remove in production */}
-        <div className="mt-4 flex gap-2">
-          <button 
-            onClick={loadDashboardData}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
-          >
-            Refresh Data
-          </button>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Welcome back, {authUser?.first_name || 'User'}!
+        </h1>
+        <p className="text-gray-600 mt-2">Here's your learning progress and recommendations</p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {dashboardData.userStats && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Users</h3>
-            <p className="text-3xl font-bold text-blue-600">{dashboardData.userStats.totalUsers}</p>
-            <p className="text-sm text-gray-500">{dashboardData.userStats.activeUsers} active</p>
-          </div>
-        )}
-
-        {dashboardData.courseStats && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Courses</h3>
-            <p className="text-3xl font-bold text-green-600">{dashboardData.courseStats.totalCourses}</p>
-            <p className="text-sm text-gray-500">{dashboardData.courseStats.activeCourses} active</p>
-          </div>
-        )}
-
-        {dashboardData.projectStats && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Projects</h3>
-            <p className="text-3xl font-bold text-purple-600">{dashboardData.projectStats.totalProjects}</p>
-            <p className="text-sm text-gray-500">{dashboardData.projectStats.activeProjects} active</p>
-          </div>
-        )}
-
-        {dashboardData.courseStats && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Enrollments</h3>
-            <p className="text-3xl font-bold text-orange-600">{dashboardData.courseStats.totalEnrollments || 0}</p>
-            <p className="text-sm text-gray-500">{dashboardData.courseStats.completionRate || 0}% completion</p>
-          </div>
-        )}
+        <StatCard
+          icon={BookOpen}
+          title="Courses Enrolled"
+          value={dashboardData?.stats?.coursesEnrolled || 0}
+          subtitle={`${dashboardData?.stats?.coursesCompleted || 0} completed`}
+          color="blue"
+        />
+        <StatCard
+          icon={Award}
+          title="Badges Earned"
+          value={dashboardData?.stats?.badgesEarned || 0}
+          color="yellow"
+        />
+        <StatCard
+          icon={Users}
+          title="Projects"
+          value={dashboardData?.stats?.projectsAssigned || 0}
+          subtitle={`${dashboardData?.stats?.projectsCompleted || 0} completed`}
+          color="green"
+        />
+        <StatCard
+          icon={TrendingUp}
+          title="Tokens Earned"
+          value={dashboardData?.stats?.totalTokensEarned || 0}
+          color="purple"
+        />
       </div>
 
-      {/* Course Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Popular Courses */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Popular Courses 
-            <span className="text-sm text-gray-500 ml-2">
-              ({dashboardData.popularCourses.length} found)
-            </span>
-          </h2>
-          {dashboardData.popularCourses.length > 0 ? (
-            <div className="space-y-3">
-              {dashboardData.popularCourses.map(course => (
-                <div key={course.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Course Recommendations */}
+          <CourseRecommendations limit={6} />
+
+          {/* Recent Activity */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+              <Clock className="w-6 h-6 mr-2" />
+              Recent Activity
+            </h2>
+
+            {dashboardData?.recent ? (
+              <div className="space-y-4">
+                {/* Recent Courses */}
+                {dashboardData.recent.courses?.length > 0 && (
                   <div>
-                    <h3 className="font-medium text-gray-900">{course.title}</h3>
-                    <p className="text-sm text-gray-500">
-                      {course.category} • {course.difficulty_level}
-                    </p>
-                    {course.instructor_name && (
-                      <p className="text-xs text-gray-400">by {course.instructor_name}</p>
-                    )}
+                    <h3 className="font-medium text-gray-800 mb-2">Course Progress</h3>
+                    <div className="space-y-2">
+                      {dashboardData.recent.courses.slice(0, 3).map(enrollment => (
+                        <div key={enrollment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div>
+                            <p className="font-medium text-gray-900">{enrollment.Course?.title}</p>
+                            <p className="text-sm text-gray-600">Progress: {enrollment.progress_percentage}%</p>
+                          </div>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(enrollment.status)}`}>
+                            {enrollment.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-sm text-blue-600 font-medium">
-                      {course.enrollment_count || 0} enrolled
-                    </span>
-                    <br />
-                    <button
-                      className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 mt-1"
-                      onClick={() => navigate(`/courses/${course.id}`)}
-                    >
-                      Go to Course
-                    </button>
+                )}
+
+                {/* Recent Badges */}
+                {dashboardData.recent.badges?.length > 0 && (
+                  <div>
+                    <h3 className="font-medium text-gray-800 mb-2">Recent Achievements</h3>
+                    <div className="space-y-2">
+                      {dashboardData.recent.badges.slice(0, 2).map(userBadge => (
+                        <div key={userBadge.id} className="flex items-center p-3 bg-yellow-50 rounded-lg">
+                          <Award className="w-5 h-5 text-yellow-600 mr-3" />
+                          <div>
+                            <p className="font-medium text-gray-900">{userBadge.Badge?.name}</p>
+                            <p className="text-sm text-gray-600">
+                              Earned {new Date(userBadge.earned_date).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-gray-500">No popular courses available</p>
-              <p className="text-xs text-gray-400 mt-1">
-                Try adding some courses to the database
-              </p>
-            </div>
-          )}
+                )}
+
+                {/* Recent Projects */}
+                {dashboardData.recent.projects?.length > 0 && (
+                  <div>
+                    <h3 className="font-medium text-gray-800 mb-2">Project Updates</h3>
+                    <div className="space-y-2">
+                      {dashboardData.recent.projects.slice(0, 2).map(assignment => (
+                        <div key={assignment.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                          <div>
+                            <p className="font-medium text-gray-900">{assignment.Project?.name}</p>
+                            <p className="text-sm text-gray-600">Role: {assignment.role}</p>
+                          </div>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(assignment.status)}`}>
+                            {assignment.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-600">No recent activity to show yet.</p>
+                <button
+                  onClick={() => navigate('/courses')}
+                  className="mt-3 text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Start learning today!
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-        {/* Recommended Courses */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Recommended for You
-            <span className="text-sm text-gray-500 ml-2">
-              ({dashboardData.recommendedCourses.length} found)
-            </span>
-          </h2>
-          {dashboardData.recommendedCourses.length > 0 ? (
-            <div className="space-y-3">
-              {dashboardData.recommendedCourses.map(course => (
-                <div key={course.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                  <div>
-                    <h3 className="font-medium text-gray-900">{course.title}</h3>
-                    <p className="text-sm text-gray-500">
-                      {course.category} • {course.difficulty_level}
-                    </p>
-                    {course.instructor_name && (
-                      <p className="text-xs text-gray-400">by {course.instructor_name}</p>
-                    )}
-                  </div>
-                  <button
-                    className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Current Courses */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Current Courses</h3>
+              <button
+                onClick={() => navigate('/courses?user_enrolled=true')}
+                className="text-blue-600 hover:text-blue-700 text-sm flex items-center"
+              >
+                View All
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              </div>
+            ) : recentCourses.length > 0 ? (
+              <div className="space-y-3">
+                {recentCourses.map(course => (
+                  <div 
+                    key={course.id}
+                    className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
                     onClick={() => navigate(`/courses/${course.id}`)}
                   >
-                    Go to Course
-                  </button>
+                    <h4 className="font-medium text-gray-900 text-sm">{course.title}</h4>
+                    <p className="text-xs text-gray-600 mb-2">{course.category}</p>
+                    {course.CourseEnrollments?.[0] && (
+                      <div className="flex items-center justify-between">
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 mr-2">
+                          <div 
+                            className="bg-blue-600 h-1.5 rounded-full"
+                            style={{ width: `${course.CourseEnrollments[0].progress_percentage || 0}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-xs text-gray-500 flex-shrink-0">
+                          {course.CourseEnrollments[0].progress_percentage || 0}%
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <BookOpen className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600 text-sm mb-3">No enrolled courses yet</p>
+                <button
+                  onClick={() => navigate('/courses')}
+                  className="bg-blue-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-blue-700"
+                >
+                  Browse Courses
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Quick Actions */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="space-y-3">
+              <button
+                onClick={() => navigate('/courses')}
+                className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center"
+              >
+                <BookOpen className="w-5 h-5 text-blue-600 mr-3" />
+                <div>
+                  <div className="font-medium text-gray-900">Browse Courses</div>
+                  <div className="text-sm text-gray-600">Find new learning opportunities</div>
                 </div>
-              ))}
+              </button>
+              
+              <button
+                onClick={() => navigate('/profile')}
+                className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center"
+              >
+                <Users className="w-5 h-5 text-green-600 mr-3" />
+                <div>
+                  <div className="font-medium text-gray-900">Update Profile</div>
+                  <div className="text-sm text-gray-600">Manage your skills and info</div>
+                </div>
+              </button>
+              
+              <button
+                onClick={() => navigate('/projects')}
+                className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center"
+              >
+                <Target className="w-5 h-5 text-purple-600 mr-3" />
+                <div>
+                  <div className="font-medium text-gray-900">View Projects</div>
+                  <div className="text-sm text-gray-600">Check your project assignments</div>
+                </div>
+              </button>
+              
+              <button
+                onClick={() => navigate('/analytics')}
+                className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center"
+              >
+                <BarChart3 className="w-5 h-5 text-orange-600 mr-3" />
+                <div>
+                  <div className="font-medium text-gray-900">View Analytics</div>
+                  <div className="text-sm text-gray-600">Track your progress</div>
+                </div>
+              </button>
             </div>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-gray-500">No recommended courses available</p>
-              <p className="text-xs text-gray-400 mt-1">
-                We'll recommend courses based on your skills and interests
-              </p>
-            </div>
-          )}
+          </div>
+
+          {/* Learning Goals */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Learning Goals</h3>
+            {dashboardData?.stats ? (
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">Course Completion</span>
+                    <span className="text-sm text-gray-600">
+                      {dashboardData.stats.coursesCompleted}/{dashboardData.stats.coursesEnrolled}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{ 
+                        width: `${dashboardData.stats.coursesEnrolled > 0 
+                          ? (dashboardData.stats.coursesCompleted / dashboardData.stats.coursesEnrolled) * 100 
+                          : 0}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">Project Completion</span>
+                    <span className="text-sm text-gray-600">
+                      {dashboardData.stats.projectsCompleted}/{dashboardData.stats.projectsAssigned}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-green-600 h-2 rounded-full"
+                      style={{ 
+                        width: `${dashboardData.stats.projectsAssigned > 0 
+                          ? (dashboardData.stats.projectsCompleted / dashboardData.stats.projectsAssigned) * 100 
+                          : 0}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <Target className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600 text-sm">Set learning goals to track progress</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

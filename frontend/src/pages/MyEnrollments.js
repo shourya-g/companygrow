@@ -16,7 +16,7 @@ import {
   RotateCcw,
   X
 } from 'lucide-react';
-import { courseEnrollmentsAPI } from '../services/api';
+import { courseEnrollmentAPI } from '../services/api';
 import CourseProgress from '../components/CourseProgress';
 
 const MyEnrollments = () => {
@@ -40,7 +40,7 @@ const MyEnrollments = () => {
     setError(null);
     
     try {
-      const response = await courseEnrollmentsAPI.getUserEnrollments(user.id);
+      const response = await courseEnrollmentAPI.getUserEnrollments(user.id);
       if (response.data.success) {
         setEnrollments(response.data.data);
       }
@@ -88,7 +88,7 @@ const MyEnrollments = () => {
   const handleDeEnroll = async (enrollmentId) => {
     setDeEnrollingId(enrollmentId);
     try {
-      await courseEnrollmentsAPI.unenroll(enrollmentId);
+      await courseEnrollmentAPI.unenroll(enrollmentId);
       setEnrollments(prev => prev.filter(e => e.id !== enrollmentId));
     } catch (err) {
       setError('Failed to de-enroll from course');
