@@ -253,7 +253,7 @@ function AppContent() {
         } />
 
         {/* My Learning / Enrollments Route */}
-        <Route path="/my-learning" element={
+        <Route path="/my-enrollments" element={
           <RequireAuth>
             <MainLayout>
               <MyEnrollments />
