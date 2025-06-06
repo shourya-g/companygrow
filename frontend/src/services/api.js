@@ -324,5 +324,22 @@ export const tokenUtils = {
     }
   },
 };
+// PROJECT ASSIGNMENTS API
+export const projectAssignmentsAPI = {
+  getAll: () => api.get('/projectAssignments'),
+  getById: (id) => api.get(`/projectAssignments/${id}`),
+  getRecommendations: (projectId) => api.get(`/projectAssignments/recommendations/${projectId}`),
+  getStatistics: () => api.get('/projectAssignments/statistics'),
+  getUserAssignments: (userId) => api.get(`/projectAssignments/user/${userId}`),
+  getProjectAssignments: (projectId) => api.get(`/projectAssignments/project/${projectId}`),
+  assignUser: (data) => api.post('/projectAssignments', data),
+  update: (id, data) => api.put(`/projectAssignments/${id}`, data),
+  remove: (id) => api.delete(`/projectAssignments/${id}`),
+};
 
-export default api;
+// Legacy project assignment exports (for backward compatibility)
+export const fetchProjectAssignments = projectAssignmentsAPI.getAll;
+export const createProjectAssignment = projectAssignmentsAPI.assignUser;
+export const updateProjectAssignment = projectAssignmentsAPI.update;
+export const deleteProjectAssignment = projectAssignmentsAPI.remove;
+export const fetchAssignmentRecommendations = projectAssignmentsAPI.getRecommendations;

@@ -7,7 +7,6 @@ const sequelize = require('./config/database-connection');
 const { auth, requireRole } = require('./middleware/auth');
 require('dotenv').config();
 
-// INITIALIZE EXPRESS APP FIRST
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -17,6 +16,7 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
+
 
 // Stricter rate limiting for auth routes
 const authLimiter = rateLimit({
@@ -44,9 +44,6 @@ app.use('/uploads', express.static('uploads'));
 // Public Routes (no authentication required)
 app.use('/api/auth', authLimiter, require('./routes/auth'));
 
-// Public registration route (no auth required)
-app.use('/api/users', require('./routes/users'));
-
 // Debug routes (temporary - remove in production)
 if (process.env.NODE_ENV !== 'production') {
   try {
@@ -60,51 +57,46 @@ if (process.env.NODE_ENV !== 'production') {
 app.use('/api/users', auth, require('./routes/users'));
 app.use('/api/courses', auth, require('./routes/courses'));
 app.use('/api/projects', auth, require('./routes/projects'));
-
-// ENHANCED SKILLS ROUTES - This is the key addition for skill management
 app.use('/api/skills', auth, require('./routes/skills'));
-
-// Check if userSkills route exists before using it
-try {
-  app.use('/api/userSkills', auth, require('./routes/userSkills'));
-} catch (err) {
-  console.log('UserSkills routes not found - using user-based skill routes instead');
-}
-
+app.use('/api/userSkills', auth, require('./routes/userSkills'));
 app.use('/api/badges', auth, require('./routes/badges'));
 app.use('/api/notifications', auth, require('./routes/notifications'));
 app.use('/api/payments', auth, require('./routes/payments'));
 app.use('/api/userTokens', auth, require('./routes/userTokens'));
 app.use('/api/tokenTransactions', auth, require('./routes/tokenTransactions'));
+app.use('/api/projectAssignments', auth, require('./routes/projectAssignments'));
 
 // Admin-only routes
-app.use('/api/analytics', auth, require('./routes/analytics'));
+app.use('/api/analytics', auth, requireRole(['admin', 'manager']), require('./routes/analytics'));
 app.use('/api/appSettings', auth, requireRole(['admin']), require('./routes/appSettings'));
 app.use('/api/performanceReviews', auth, requireRole(['admin', 'manager']), require('./routes/performanceReviews'));
 
 // Optional auth routes (can work with or without auth)
 try {
   app.use('/api/courseEnrollments', require('./routes/courseEnrollments'));
-  app.use('/api/projectAssignments', require('./routes/projectAssignments'));
+} catch (err) {
+  console.log('Course enrollments routes not found - skipping');
+}
+
+try {
   app.use('/api/projectSkills', require('./routes/projectSkills'));
+} catch (err) {
+  console.log('Project skills routes not found - skipping');
+}
+
+try {
   app.use('/api/courseSkills', require('./routes/courseSkills'));
 } catch (err) {
-  console.log('Some optional routes not found - continuing without them');
+  console.log('Course skills routes not found - skipping');
 }
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
     success: true,
-    message: 'CompanyGrow API is running with enhanced skill management!', 
+    message: 'CompanyGrow API is running!', 
     timestamp: new Date(),
-    environment: process.env.NODE_ENV || 'development',
-    features: {
-      skills: 'Enhanced skill management system active',
-      userSkills: 'User skill management with proficiency tracking',
-      authentication: 'JWT-based authentication',
-      authorization: 'Role-based access control'
-    }
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
@@ -171,7 +163,6 @@ app.use((err, req, res, next) => {
 // Sync Sequelize models with the database
 sequelize.sync().then(() => {
   console.log('✅ Database synced successfully');
-  console.log('🚀 Enhanced skill management system loaded');
 }).catch(err => {
   console.error('❌ Database sync failed:', err);
 });
@@ -188,11 +179,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔒 Auth enabled on protected routes`);
-  console.log(`⚡ Enhanced skill management system active`);
-  console.log(`🎯 Available skill endpoints:`);
-  console.log(`   - GET /api/skills (with search & filtering)`);
-  console.log(`   - POST /api/skills (admin only)`);
-  console.log(`   - GET /api/skills/statistics (admin/manager)`);
-  console.log(`   - POST /api/skills/bulk-import (admin only)`);
-  console.log(`   - GET /api/users/:id/skills (user skill management)`);
 });
