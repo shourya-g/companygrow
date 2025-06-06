@@ -283,3 +283,14 @@ export const tokenUtils = {
     }
   },
 };
+
+// PROJECT SKILLS API
+export const projectSkillsAPI = {
+  getAll: () => api.get('/projectSkills'),
+  getById: (id) => api.get(`/projectSkills/${id}`),
+  getProjectSkills: (projectId) => api.get(`/projectSkills/project/${projectId}`),
+  getSkillProjects: (skillId) => api.get(`/projectSkills/skill/${skillId}`),
+  addSkillToProject: (data) => api.post('/projectSkills', data),
+  updateProjectSkill: (id, data) => api.put(`/projectSkills/${id}`, data),
+  removeSkillFromProject: (id) => api.delete(`/projectSkills/${id}`),
+};

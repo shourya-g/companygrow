@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { fetchProjects, createProject, deleteProject, skillsAPI } from '../services/api';
+import { fetchProjects, createProject, deleteProject, skillsAPI, projectSkillsAPI } from '../services/api';
 import { useSelector } from 'react-redux';
 import { X, Plus, AlertCircle, Search } from 'lucide-react';
 
@@ -110,15 +110,14 @@ const Projects = () => {
       // If skills are selected, add them to the project
       if (selectedSkills.length > 0) {
         try {
-          // Add project skills (this would require a project skills API)
+          // Add project skills
           for (const skill of selectedSkills) {
-            // Note: This requires the project skills API endpoint
-            // await projectSkillsAPI.create({
-            //   project_id: createdProject.data.data.id,
-            //   skill_id: skill.id,
-            //   required_level: skill.required_level,
-            //   is_mandatory: skill.is_mandatory
-            // });
+            await projectSkillsAPI.addSkillToProject({
+              project_id: createdProject.data.data.id,
+              skill_id: skill.id,
+              required_level: skill.required_level,
+              is_mandatory: skill.is_mandatory
+            });
           }
         } catch (skillErr) {
           console.warn('Failed to add skills to project:', skillErr);
