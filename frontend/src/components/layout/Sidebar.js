@@ -79,7 +79,7 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      {/* Quick Actions for Course Management */}
+      {/* Quik Actions for Course Management */}
       {user && ['admin', 'manager'].includes(user.role) && (
         <div className="mt-8 border-t border-gray-700 pt-6">
           <h3 className="text-xs uppercase text-gray-500 font-semibold mb-3">
