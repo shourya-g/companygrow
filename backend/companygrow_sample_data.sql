@@ -15,12 +15,12 @@ INSERT INTO skills (name, category, description) VALUES
 ('UI/UX Design', 'technical', 'User interface and experience design');
 
 -- Insert sample users (passwords should be hashed in real application)
-INSERT INTO users (email, password, first_name, last_name, role, department, position, hire_date) VALUES
-('admin@companygrow.com', '$2a$10$example_hashed_password', 'Admin', 'User', 'admin', 'IT', 'System Administrator', '2023-01-15'),
-('john.doe@companygrow.com', '$2a$10$example_hashed_password', 'John', 'Doe', 'employee', 'Engineering', 'Software Developer', '2023-03-20'),
-('jane.smith@companygrow.com', '$2a$10$example_hashed_password', 'Jane', 'Smith', 'manager', 'Engineering', 'Senior Developer', '2022-08-10'),
-('bob.wilson@companygrow.com', '$2a$10$example_hashed_password', 'Bob', 'Wilson', 'employee', 'Design', 'UI/UX Designer', '2023-05-01'),
-('alice.brown@companygrow.com', '$2a$10$example_hashed_password', 'Alice', 'Brown', 'employee', 'Marketing', 'Digital Marketer', '2023-02-14');
+INSERT INTO users (email, password, first_name, last_name, role, department, position, hire_date, profile_image, bio, phone, address, is_active, last_login) VALUES
+('admin@companygrow.com', '$2a$10$example_hashed_password', 'Admin', 'User', 'admin', 'IT', 'System Administrator', '2023-01-15', NULL, NULL, NULL, NULL, TRUE, NULL),
+('john.doe@companygrow.com', '$2a$10$example_hashed_password', 'John', 'Doe', 'employee', 'Engineering', 'Software Developer', '2023-03-20', NULL, NULL, NULL, NULL, TRUE, NULL),
+('jane.smith@companygrow.com', '$2a$10$example_hashed_password', 'Jane', 'Smith', 'manager', 'Engineering', 'Senior Developer', '2022-08-10', NULL, NULL, NULL, NULL, TRUE, NULL),
+('bob.wilson@companygrow.com', '$2a$10$example_hashed_password', 'Bob', 'Wilson', 'employee', 'Design', 'UI/UX Designer', '2023-05-01', NULL, NULL, NULL, NULL, TRUE, NULL),
+('alice.brown@companygrow.com', '$2a$10$example_hashed_password', 'Alice', 'Brown', 'employee', 'Marketing', 'Digital Marketer', '2023-02-14', NULL, NULL, NULL, NULL, TRUE, NULL);
 
 -- Insert user skills
 INSERT INTO user_skills (user_id, skill_id, proficiency_level, years_experience, is_verified) VALUES
@@ -36,12 +36,12 @@ INSERT INTO user_skills (user_id, skill_id, proficiency_level, years_experience,
 (5, 6, 3, 2, true);  -- Alice: Project Management
 
 -- Insert sample courses
-INSERT INTO courses (title, description, category, difficulty_level, duration_hours, instructor_name, is_active, price, created_by) VALUES
-('Advanced JavaScript Concepts', 'Deep dive into closures, prototypes, and async programming', 'Programming', 'advanced', 20, 'Sarah Johnson', true, 199.99, 1),
-('React Fundamentals', 'Learn React from basics to building complete applications', 'Frontend', 'beginner', 15, 'Mike Chen', true, 149.99, 1),
-('Leadership Skills for Tech Teams', 'Develop leadership skills specific to technology teams', 'Leadership', 'intermediate', 12, 'Dr. Patricia Lee', true, 299.99, 1),
-('Project Management Essentials', 'Learn agile project management methodologies', 'Management', 'beginner', 18, 'Robert Martinez', true, 179.99, 1),
-('UI/UX Design Principles', 'Master the fundamentals of user-centered design', 'Design', 'intermediate', 25, 'Emma Davis', true, 249.99, 1);
+INSERT INTO courses (title, description, category, difficulty_level, duration_hours, instructor_name, instructor_bio, course_image, video_url, course_materials, prerequisites, learning_objectives, is_active, price, created_by) VALUES
+('Advanced JavaScript Concepts', 'Deep dive into closures, prototypes, and async programming', 'Programming', 'advanced', 20, 'Sarah Johnson', NULL, NULL, NULL, ARRAY[]::text[], NULL, ARRAY['Understand closures', 'Master async programming'], TRUE, 199.99, 1),
+('React Fundamentals', 'Learn React from basics to building complete applications', 'Frontend', 'beginner', 15, 'Mike Chen', NULL, NULL, NULL, ARRAY[]::text[], NULL, ARRAY['Build React apps', 'Understand JSX'], TRUE, 149.99, 1),
+('Leadership Skills for Tech Teams', 'Develop leadership skills specific to technology teams', 'Leadership', 'intermediate', 12, 'Dr. Patricia Lee', NULL, NULL, NULL, ARRAY[]::text[], NULL, ARRAY['Lead tech teams', 'Improve communication'], TRUE, 299.99, 1),
+('Project Management Essentials', 'Learn agile project management methodologies', 'Management', 'beginner', 18, 'Robert Martinez', NULL, NULL, NULL, ARRAY[]::text[], NULL, ARRAY['Agile basics', 'Scrum roles'], TRUE, 179.99, 1),
+('UI/UX Design Principles', 'Master the fundamentals of user-centered design', 'Design', 'intermediate', 25, 'Emma Davis', NULL, NULL, NULL, ARRAY[]::text[], NULL, ARRAY['User research', 'Wireframing'], TRUE, 249.99, 1);
 
 -- Link courses with skills they teach
 INSERT INTO course_skills (course_id, skill_id, skill_level) VALUES
@@ -52,18 +52,18 @@ INSERT INTO course_skills (course_id, skill_id, skill_level) VALUES
 (5, 10, 3); -- UI/UX course teaches Design to level 3
 
 -- Insert sample course enrollments
-INSERT INTO course_enrollments (user_id, course_id, status, progress_percentage, enrollment_date) VALUES
-(2, 2, 'in_progress', 65, '2024-01-15'),
-(2, 1, 'enrolled', 0, '2024-02-01'),
-(3, 3, 'completed', 100, '2023-12-01'),
-(4, 5, 'in_progress', 40, '2024-01-20'),
-(5, 4, 'completed', 100, '2023-11-15');
+INSERT INTO course_enrollments (user_id, course_id, status, progress_percentage, enrollment_date, start_date, completion_date, final_score, certificate_url) VALUES
+(2, 2, 'in_progress', 65, '2024-01-15', NULL, NULL, NULL, NULL),
+(2, 1, 'enrolled', 0, '2024-02-01', NULL, NULL, NULL, NULL),
+(3, 3, 'completed', 100, '2023-12-01', '2023-12-01', '2023-12-20', 95, 'https://certs.companygrow.com/3-3'),
+(4, 5, 'in_progress', 40, '2024-01-20', NULL, NULL, NULL, NULL),
+(5, 4, 'completed', 100, '2023-11-15', '2023-11-15', '2023-12-10', 90, 'https://certs.companygrow.com/5-4');
 
 -- Insert sample projects
-INSERT INTO projects (name, description, project_type, status, priority, start_date, end_date, estimated_hours, project_manager_id, created_by) VALUES
-('E-commerce Website Redesign', 'Complete redesign of company e-commerce platform', 'development', 'active', 'high', '2024-02-01', '2024-04-30', 320, 3, 1),
-('Mobile App Development', 'Native mobile app for iOS and Android', 'development', 'planning', 'medium', '2024-03-15', '2024-08-15', 480, 3, 1),
-('Marketing Campaign Automation', 'Automated email marketing system', 'marketing', 'active', 'medium', '2024-01-15', '2024-03-15', 160, 3, 1);
+INSERT INTO projects (name, description, project_type, status, priority, start_date, end_date, estimated_hours, actual_hours, budget, client_name, project_manager_id, created_by) VALUES
+('E-commerce Website Redesign', 'Complete redesign of company e-commerce platform', 'development', 'active', 'high', '2024-02-01', '2024-04-30', 320, 0, NULL, NULL, 3, 1),
+('Mobile App Development', 'Native mobile app for iOS and Android', 'development', 'planning', 'medium', '2024-03-15', '2024-08-15', 480, 0, NULL, NULL, 3, 1),
+('Marketing Campaign Automation', 'Automated email marketing system', 'marketing', 'active', 'medium', '2024-01-15', '2024-03-15', 160, 0, NULL, NULL, 3, 1);
 
 -- Link projects with required skills
 INSERT INTO project_skills (project_id, skill_id, required_level, is_mandatory) VALUES
@@ -76,11 +76,11 @@ INSERT INTO project_skills (project_id, skill_id, required_level, is_mandatory) 
 (3, 7, 3, false); -- Marketing automation prefers Communication level 3
 
 -- Insert project assignments
-INSERT INTO project_assignments (user_id, project_id, role, hours_allocated, hourly_rate, status) VALUES
-(2, 1, 'Frontend Developer', 120, 45.00, 'active'),
-(4, 1, 'UI/UX Designer', 80, 50.00, 'active'),
-(3, 1, 'Tech Lead', 60, 65.00, 'active'),
-(5, 3, 'Project Coordinator', 40, 35.00, 'active');
+INSERT INTO project_assignments (user_id, project_id, role, assignment_date, hours_allocated, hours_worked, hourly_rate, status, performance_rating, feedback) VALUES
+(2, 1, 'Frontend Developer', CURRENT_TIMESTAMP, 120, 0, 45.00, 'active', NULL, NULL),
+(4, 1, 'UI/UX Designer', CURRENT_TIMESTAMP, 80, 0, 50.00, 'active', NULL, NULL),
+(3, 1, 'Tech Lead', CURRENT_TIMESTAMP, 60, 0, 65.00, 'active', NULL, NULL),
+(5, 3, 'Project Coordinator', CURRENT_TIMESTAMP, 40, 0, 35.00, 'active', NULL, NULL);
 
 -- Insert sample badges
 INSERT INTO badges (name, description, badge_type, token_reward, rarity) VALUES
@@ -99,27 +99,27 @@ INSERT INTO user_badges (user_id, badge_id, awarded_by, notes) VALUES
 (5, 4, 1, 'Great collaboration on marketing project');
 
 -- Initialize token balances for users
-INSERT INTO user_tokens (user_id, balance, lifetime_earned) VALUES
-(2, 100, 100),
-(3, 650, 650),
-(4, 100, 100),
-(5, 150, 150);
+INSERT INTO user_tokens (user_id, balance, lifetime_earned, lifetime_spent, last_updated) VALUES
+(2, 100, 100, 0, CURRENT_TIMESTAMP),
+(3, 650, 650, 0, CURRENT_TIMESTAMP),
+(4, 100, 100, 0, CURRENT_TIMESTAMP),
+(5, 150, 150, 0, CURRENT_TIMESTAMP);
 
 -- Insert token transactions
-INSERT INTO token_transactions (user_id, transaction_type, amount, source, description, balance_after) VALUES
-(2, 'earned', 100, 'badge_earned', 'First Course Complete badge', 100),
-(3, 'earned', 250, 'badge_earned', 'JavaScript Master badge', 250),
-(3, 'earned', 400, 'badge_earned', 'Leadership Excellence badge', 650),
-(4, 'earned', 100, 'badge_earned', 'First Course Complete badge', 100),
-(5, 'earned', 150, 'badge_earned', 'Team Player badge', 150);
+INSERT INTO token_transactions (user_id, transaction_type, amount, source, source_id, description, balance_after, created_at) VALUES
+(2, 'earned', 100, 'badge_earned', 1, 'First Course Complete badge', 100, CURRENT_TIMESTAMP),
+(3, 'earned', 250, 'badge_earned', 2, 'JavaScript Master badge', 250, CURRENT_TIMESTAMP),
+(3, 'earned', 400, 'badge_earned', 5, 'Leadership Excellence badge', 650, CURRENT_TIMESTAMP),
+(4, 'earned', 100, 'badge_earned', 1, 'First Course Complete badge', 100, CURRENT_TIMESTAMP),
+(5, 'earned', 150, 'badge_earned', 4, 'Team Player badge', 150, CURRENT_TIMESTAMP);
 
 -- Insert sample notifications
-INSERT INTO notifications (user_id, title, message, type, is_read) VALUES
-(2, 'New Course Available', 'Advanced JavaScript Concepts course is now available', 'course', false),
-(2, 'Project Assignment', 'You have been assigned to E-commerce Website Redesign', 'project', true),
-(3, 'Badge Earned', 'Congratulations! You earned the Leadership Excellence badge', 'badge', false),
-(4, 'Course Reminder', 'Continue your UI/UX Design Principles course', 'course', false),
-(5, 'Performance Review', 'Your quarterly performance review is due', 'system', false);
+INSERT INTO notifications (user_id, title, message, type, is_read, action_url) VALUES
+(2, 'New Course Available', 'Advanced JavaScript Concepts course is now available', 'course', FALSE, NULL),
+(2, 'Project Assignment', 'You have been assigned to E-commerce Website Redesign', 'project', TRUE, NULL),
+(3, 'Badge Earned', 'Congratulations! You earned the Leadership Excellence badge', 'badge', FALSE, NULL),
+(4, 'Course Reminder', 'Continue your UI/UX Design Principles course', 'course', FALSE, NULL),
+(5, 'Performance Review', 'Your quarterly performance review is due', 'system', FALSE, NULL);
 
 -- Insert app settings
 INSERT INTO app_settings (setting_key, setting_value, description) VALUES
