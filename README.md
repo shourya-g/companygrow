@@ -1,132 +1,149 @@
-# CompanyGrow
+# 🚀 CompanyGrow - Smart Workforce Development Platform
 
-A smart workforce development platform that enables organizations to nurture employee growth through tailored training, intelligent project allocation, and real-time performance rewards.
+A comprehensive workforce development platform with gamification, skill tracking, and project management. Built with React and Node.js.
 
-## Features
+## ✨ Features
 
-- **Training Course Catalog**: Create and manage courses with filtering and enrollment
-- **Employee Profiles**: Track skills, experience, and training progress
-- **Skill-Based Project Allocation**: Intelligent matching of employees to projects
-- **Badge/Token System**: Performance-based rewards with Stripe integration
-- **Performance Analytics**: Comprehensive tracking and reporting
-- **Admin Dashboard**: Central management panel
+- **Multi-role System**: Employee, Manager, Admin with role-based permissions
+- **Learning Management**: Course creation, enrollment, and progress tracking
+- **Gamification**: Badges, tokens, leaderboards, and achievements
+- **Project Management**: Skill-based project assignments and tracking
+- **Analytics**: Performance reviews and skills gap analysis
+- **Payment Integration**: Stripe-powered course payments
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **Frontend**: React.js with Redux Toolkit, Tailwind CSS
-- **Backend**: Node.js with Express.js
-- **Database**: PostgreSQL with Sequelize ORM
-- **Payment**: Stripe integration
-- **File Storage**: Cloudinary
-- **Authentication**: JWT
+**Frontend**: React 19, Redux Toolkit, Tailwind CSS, Chart.js  
+**Backend**: Node.js, Express, PostgreSQL, Sequelize  
+**Additional**: JWT auth, Stripe payments, Cloudinary storage, WebSocket
 
-## Getting Started
+## 🚀 Quick Start
 
-1. **Prerequisites**
-   - Node.js (v16 or higher)
-   - PostgreSQL
-   - npm or yarn
+### Prerequisites
+- Node.js 16+
+- PostgreSQL 12+
+- Stripe account (for payments)
+- Cloudinary account (for file storage)
 
-2. **Installation**
-   ```bash
-   # Install all dependencies
-   npm run install:all
-   
-   # Set up environment variables
-   cp backend/.env.example backend/.env
-   # Edit backend/.env with your database and API credentials
-   ```
+### 1. Clone & Install
+```bash
+git clone https://github.com/yourusername/companygrow.git
+cd companygrow
+npm run install:all
+```
 
-3. **Database Setup**
-   ```cmd
-   REM Create PostgreSQL database (Windows/cmd)
-   createdb companygrow_dev
+### 2. Environment Setup
+Copy the environment templates and fill in your values:
 
-   REM Run migrations (from backend directory)
-   cd backend
-   npm run db:migrate
-   ```
-   This will run the schema using `migrate.js` and your `.env` credentials.
+```bash
+# Copy environment templates
+cp .env.example backend/.env
+cp frontend/.env.example frontend/.env
 
-   **Load Sample Data:**
-   ```cmd
-   REM Still in backend directory, load sample data (Windows/cmd)
-   psql -U postgres -d companygrow_dev -f companygrow_sample_data.sql
-   ```
-   - Replace `postgres` with your DB user if different.
-   - This will populate your database with demo users, skills, courses, etc.
+# Edit the files with your actual values
+# backend/.env - Add your database, JWT, Stripe, and Cloudinary credentials
+# frontend/.env - Add your API URL and public keys
+```
 
-   **(Optional) Seed with Sequelize:**
-   ```cmd
-   npm run db:seed
-   ```
+### 3. Database Setup
+```bash
+cd backend
 
-4. **Development**
-   ```bash
-   # Run both frontend and backend
-   npm run dev
-   
-   # Or run separately
-   npm run dev:frontend  # Frontend only (port 3000)
-   npm run dev:backend   # Backend only (port 5000)
-   ```
+# Create database
+createdb companygrow_dev
 
-## Project Structure
+# Run migrations and seed data
+npm run db:reset
+```
+
+### 4. Start Development Servers
+```bash
+# From project root - starts both frontend and backend
+npm run dev
+```
+
+**Access the app:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+
+## 🔑 Demo Credentials
+
+After seeding, use these test accounts:
+
+| Role | Email | Password |
+|------|--------|----------|
+| Admin | admin@companygrow.com | admin123 |
+| Employee | john.doe@companygrow.com | password123 |
+
+## 🚨 Troubleshooting
+
+**Database connection issues:**
+```bash
+# Make sure PostgreSQL is running
+sudo service postgresql start  # Linux
+brew services start postgresql  # macOS
+```
+
+**Port conflicts:**
+- Change `PORT` in backend/.env
+- Change port in frontend/.env `REACT_APP_API_URL`
+
+**Migration errors:**
+```bash
+# Reset database
+dropdb companygrow_dev
+createdb companygrow_dev
+npm run db:migrate
+```
+
+## 📁 Project Structure
 
 ```
 companygrow/
-├── frontend/          # React application
-│   ├── public/
+├── frontend/          # React app
 │   ├── src/
 │   │   ├── components/
 │   │   ├── pages/
-│   │   ├── store/     # Redux store and slices
-│   │   ├── services/  # API calls
-│   │   └── utils/
-├── backend/           # Express API server
-│   ├── config/        # Database and app configuration
-│   ├── controllers/   # Route controllers
-│   ├── middleware/    # Custom middleware
-│   ├── models/        # Sequelize models
-│   ├── routes/        # API routes
-│   └── utils/         # Helper functions
-└── README.md
+│   │   ├── store/     # Redux
+│   │   └── services/  # API calls
+│   └── .env.example
+├── backend/           # Express API
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   └── .env.example
+└── package.json       # Root workspace config
 ```
 
-## Environment Variables
+## 🔧 Available Scripts
 
-Create `backend/.env` file with:
-
-```env
-NODE_ENV=development
-PORT=5000
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=companygrow_dev
-DB_USER=postgres
-DB_PASS=your_password
-JWT_SECRET=your_jwt_secret
-STRIPE_SECRET_KEY=your_stripe_key
-CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+```bash
+npm run dev              # Start both frontend and backend
+npm run dev:frontend     # Start only frontend
+npm run dev:backend      # Start only backend
+npm run install:all      # Install all dependencies
+npm run build           # Build frontend for production
 ```
 
-## API Endpoints
+## 📚 API Documentation
 
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/courses` - Get courses
-- `GET /api/projects` - Get projects
-- `GET /api/analytics` - Get analytics data
-- `POST /api/payments` - Process payments
+Key endpoints:
+- `POST /api/auth/login` - Authentication
+- `GET /api/courses` - List courses
+- `POST /api/courseEnrollments` - Enroll in course
+- `GET /api/projects` - List projects
+- `GET /api/users/profile` - User profile
 
-## Contributing
+## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+1. Fork the repo
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push: `git push origin feature/amazing-feature`
+5. Open Pull Request
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License.
+MIT License - see [LICENSE](LICENSE) file for details.
+
+---
