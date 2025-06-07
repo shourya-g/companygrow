@@ -151,6 +151,7 @@ CREATE TABLE badges (
     token_reward INTEGER DEFAULT 0, -- tokens awarded with this badge
     rarity VARCHAR(20) CHECK (rarity IN ('common', 'uncommon', 'rare', 'epic', 'legendary')),
     is_active BOOLEAN DEFAULT true,
+    course_id INTEGER REFERENCES courses(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
