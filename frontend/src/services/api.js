@@ -65,6 +65,7 @@ export const fetchRegister = authAPI.register;
 // USERS API
 export const usersAPI = {
   getAll: () => api.get('/users'),
+  browse: () => api.get('/users/browse'),
   getById: (id) => api.get(`/users/${id}`),
   update: (id, data) => api.put(`/users/${id}`, data),
   delete: (id) => api.delete(`/users/${id}`),
@@ -141,11 +142,18 @@ export const deleteSkill = skillsAPI.delete;
 
 // BADGES API
 export const badgesAPI = {
-  getAll: () => api.get('/badges'),
+  getAll: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/badges${queryString ? `?${queryString}` : ''}`);
+  },
   getById: (id) => api.get(`/badges/${id}`),
   create: (data) => api.post('/badges', data),
   update: (id, data) => api.put(`/badges/${id}`, data),
   delete: (id) => api.delete(`/badges/${id}`),
+  
+  // User badge methods
+  getUserBadges: (userId) => api.get(`/badges/user/${userId}`),
+  awardBadge: (data) => api.post('/badges/award', data),
 };
 
 // Legacy badge exports

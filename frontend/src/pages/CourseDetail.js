@@ -304,6 +304,58 @@ const CourseDetail = () => {
               </div>
             )}
 
+            {/* Course Badges */}
+            {course.Badges && course.Badges.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <Award className="w-5 h-5 mr-2" />
+                  Earn These Badges
+                </h3>
+                <div className="space-y-3">
+                  {course.Badges.map(badge => (
+                    <div key={badge.id} className={`p-4 rounded-lg border-2 ${
+                      badge.rarity === 'common' ? 'border-gray-300 bg-gray-50' :
+                      badge.rarity === 'uncommon' ? 'border-green-300 bg-green-50' :
+                      badge.rarity === 'rare' ? 'border-blue-300 bg-blue-50' :
+                      badge.rarity === 'epic' ? 'border-purple-300 bg-purple-50' :
+                      badge.rarity === 'legendary' ? 'border-yellow-300 bg-yellow-50' :
+                      'border-gray-300 bg-gray-50'
+                    }`}>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900 flex items-center">
+                            <Award className="w-5 h-5 mr-2" />
+                            {badge.name}
+                          </h4>
+                          <p className="text-gray-700 mt-1">{badge.description}</p>
+                          <p className="text-sm text-gray-600 mt-2">
+                            Complete this course with 80%+ score to earn this badge
+                          </p>
+                        </div>
+                        <div className="text-right ml-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
+                            badge.rarity === 'common' ? 'bg-gray-200 text-gray-800' :
+                            badge.rarity === 'uncommon' ? 'bg-green-200 text-green-800' :
+                            badge.rarity === 'rare' ? 'bg-blue-200 text-blue-800' :
+                            badge.rarity === 'epic' ? 'bg-purple-200 text-purple-800' :
+                            badge.rarity === 'legendary' ? 'bg-yellow-200 text-yellow-800' :
+                            'bg-gray-200 text-gray-800'
+                          }`}>
+                            {badge.rarity}
+                          </span>
+                          {badge.token_reward && (
+                            <p className="text-sm font-semibold text-green-600 mt-1">
+                              +{badge.token_reward} tokens
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Instructor Info */}
             {course.instructor_name && (
               <div className="mb-6">

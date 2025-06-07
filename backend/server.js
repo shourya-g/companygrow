@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const sequelize = require('./config/database-connection');
-const { auth, requireRole } = require('./middleware/auth');
+const { auth, optionalAuth, requireRole } = require('./middleware/auth');
 require('dotenv').config();
 
 const app = express();
@@ -55,16 +55,18 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Protected Routes (authentication required)
 app.use('/api/users', auth, require('./routes/users'));
-app.use('/api/courses', auth, require('./routes/courses'));
 app.use('/api/projects', auth, require('./routes/projects'));
-app.use('/api/skills', auth, require('./routes/skills'));
 app.use('/api/userSkills', auth, require('./routes/userSkills'));
-app.use('/api/badges', auth, require('./routes/badges'));
 app.use('/api/notifications', auth, require('./routes/notifications'));
 app.use('/api/payments', auth, require('./routes/payments'));
 app.use('/api/userTokens', auth, require('./routes/userTokens'));
 app.use('/api/tokenTransactions', auth, require('./routes/tokenTransactions'));
 app.use('/api/projectAssignments', auth, require('./routes/projectAssignments'));
+
+// Routes with optional authentication (can work with or without auth)
+app.use('/api/courses', optionalAuth, require('./routes/courses'));
+app.use('/api/skills', optionalAuth, require('./routes/skills'));
+app.use('/api/badges', optionalAuth, require('./routes/badges'));
 
 // Admin-only routes
 app.use('/api/analytics', auth, requireRole(['admin', 'manager']), require('./routes/analytics'));

@@ -26,6 +26,7 @@ import Rewards from './pages/Rewards';
 import ProjectAssignments from './pages/ProjectAssignments';
 import MyEnrollments from './pages/MyEnrollments';
 import CourseForm from './pages/CourseForm';
+import PublicProfile from './pages/PublicProfile';
 
 // Loading component
 const LoadingSpinner = () => (
@@ -181,6 +182,22 @@ function AppContent() {
           <RequireAuth>
             <MainLayout>
               <Profile />
+            </MainLayout>
+          </RequireAuth>
+        } />
+
+        <Route path="/browse-profiles" element={
+          <RequireAuth>
+            <MainLayout>
+              <PublicProfile />
+            </MainLayout>
+          </RequireAuth>
+        } />
+
+        <Route path="/profile/:userId" element={
+          <RequireAuth>
+            <MainLayout>
+              <PublicProfile />
             </MainLayout>
           </RequireAuth>
         } />

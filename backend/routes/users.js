@@ -12,6 +12,11 @@ router.post('/register', userController.registerUser);
 // @access  Private (Admin only)
 router.get('/', auth, requireRole(['admin']), userController.getAllUsers);
 
+// @route   GET /api/users/browse
+// @desc    Browse user profiles (public info only)
+// @access  Private (All authenticated users)
+router.get('/browse', auth, userController.browseUsers);
+
 // @route   GET /api/users/:id
 // @desc    Get user by ID
 // @access  Private (Admin or own profile)

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { authAPI, tokenUtils } from '../../services/api';
+import { authAPI } from '../../services/api';
 
 // Initialize state from localStorage
 const initializeAuth = () => {
@@ -45,7 +45,55 @@ export const loginUser = createAsyncThunk(
       
       return response.data.data;
     } catch (error) {
-      const errorMessage = error.response?.data?.error?.message || 'Login failed';
+      console.error('Login error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+      
+      // Enhanced error extraction with multiple fallback paths
+      let errorMessage = 'Login failed. Please check your credentials and try again.';
+      
+      if (error.response?.data) {
+        const responseData = error.response.data;
+        
+        // Try different possible error message locations
+        if (responseData.error?.message) {
+          errorMessage = responseData.error.message;
+        } else if (responseData.message) {
+          errorMessage = responseData.message;
+        } else if (responseData.error && typeof responseData.error === 'string') {
+          errorMessage = responseData.error;
+        } else if (responseData.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+          errorMessage = responseData.errors[0].msg || responseData.errors[0].message || responseData.errors[0];
+        }
+        
+        // Handle specific HTTP status codes
+        if (error.response.status === 401) {
+          if (!responseData.error?.message && !responseData.message) {
+            errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+          }
+        } else if (error.response.status === 500) {
+          errorMessage = 'Server error. Please try again later.';
+        } else if (error.response.status >= 400 && error.response.status < 500) {
+          if (!responseData.error?.message && !responseData.message) {
+            errorMessage = 'Invalid request. Please check your information and try again.';
+          }
+        }
+      } else if (error.message) {
+        if (error.message.includes('Network Error') || error.code === 'NETWORK_ERROR') {
+          errorMessage = 'Network error. Please check your internet connection and try again.';
+        } else if (error.message.includes('timeout') || error.code === 'ECONNABORTED') {
+          errorMessage = 'Request timeout. Please try again.';
+        } else if (error.code === 'ECONNREFUSED') {
+          errorMessage = 'Cannot connect to server. Please try again later.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      console.error('Final error message:', errorMessage);
       return rejectWithValue(errorMessage);
     }
   }
@@ -63,7 +111,55 @@ export const registerUser = createAsyncThunk(
       
       return response.data.data;
     } catch (error) {
-      const errorMessage = error.response?.data?.error?.message || 'Registration failed';
+      console.error('Registration error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+      
+      // Enhanced error extraction with multiple fallback paths
+      let errorMessage = 'Registration failed. Please check your information and try again.';
+      
+      if (error.response?.data) {
+        const responseData = error.response.data;
+        
+        // Try different possible error message locations
+        if (responseData.error?.message) {
+          errorMessage = responseData.error.message;
+        } else if (responseData.message) {
+          errorMessage = responseData.message;
+        } else if (responseData.error && typeof responseData.error === 'string') {
+          errorMessage = responseData.error;
+        } else if (responseData.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+          errorMessage = responseData.errors[0].msg || responseData.errors[0].message || responseData.errors[0];
+        }
+        
+        // Handle specific status codes
+        if (error.response.status === 409) {
+          if (!responseData.error?.message && !responseData.message) {
+            errorMessage = 'Email is already registered. Please use a different email or try logging in.';
+          }
+        } else if (error.response.status === 400) {
+          if (!responseData.error?.message && !responseData.message) {
+            errorMessage = 'Invalid information provided. Please check your details and try again.';
+          }
+        } else if (error.response.status === 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+      } else if (error.message) {
+        if (error.message.includes('Network Error') || error.code === 'NETWORK_ERROR') {
+          errorMessage = 'Network error. Please check your internet connection and try again.';
+        } else if (error.message.includes('timeout') || error.code === 'ECONNABORTED') {
+          errorMessage = 'Request timeout. Please try again.';
+        } else if (error.code === 'ECONNREFUSED') {
+          errorMessage = 'Cannot connect to server. Please try again later.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      console.error('Final error message:', errorMessage);
       return rejectWithValue(errorMessage);
     }
   }
@@ -80,7 +176,18 @@ export const getCurrentUser = createAsyncThunk(
       
       return response.data.data;
     } catch (error) {
-      const errorMessage = error.response?.data?.error?.message || 'Failed to fetch user';
+      console.error('Get current user error:', error);
+      
+      let errorMessage = 'Failed to fetch user information.';
+      
+      if (error.response?.data?.error?.message) {
+        errorMessage = error.response.data.error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return rejectWithValue(errorMessage);
     }
   }
@@ -93,11 +200,20 @@ export const verifyToken = createAsyncThunk(
       const response = await authAPI.verifyToken();
       return response.data.data.user;
     } catch (error) {
+      console.error('Token verification error:', error);
+      
       // Clear invalid token
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       
-      const errorMessage = error.response?.data?.error?.message || 'Token verification failed';
+      let errorMessage = 'Session expired. Please log in again.';
+      
+      if (error.response?.data?.error?.message) {
+        errorMessage = error.response.data.error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       return rejectWithValue(errorMessage);
     }
   }
@@ -114,7 +230,18 @@ export const updateUserProfile = createAsyncThunk(
       
       return response.data.data;
     } catch (error) {
-      const errorMessage = error.response?.data?.error?.message || 'Profile update failed';
+      console.error('Profile update error:', error);
+      
+      let errorMessage = 'Failed to update profile. Please try again.';
+      
+      if (error.response?.data?.error?.message) {
+        errorMessage = error.response.data.error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return rejectWithValue(errorMessage);
     }
   }

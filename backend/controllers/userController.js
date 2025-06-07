@@ -50,6 +50,38 @@ module.exports = {
     }
   },
 
+  // Browse users (public profile info only, for all authenticated users)
+  async browseUsers(req, res) {
+    try {
+      const users = await User.findAll({
+        attributes: [
+          'id', 'first_name', 'last_name', 'email', 
+          'department', 'position', 'hire_date', 
+          'profile_image', 'bio', 'created_at'
+        ],
+        where: {
+          is_active: true  // Only show active users
+        },
+        order: [['first_name', 'ASC'], ['last_name', 'ASC']]
+      });
+      
+      res.json({ 
+        success: true, 
+        data: users,
+        count: users.length 
+      });
+    } catch (err) {
+      console.error('Browse users error:', err);
+      res.status(500).json({ 
+        success: false, 
+        error: { 
+          message: 'Failed to fetch users for browsing',
+          code: 'BROWSE_USERS_ERROR'
+        } 
+      });
+    }
+  },
+
   // Get user by ID
   async getUserById(req, res) {
     try {

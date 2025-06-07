@@ -10,6 +10,7 @@ const Badge = sequelize.define('Badge', {
   badge_image: { type: DataTypes.STRING(500) },
   token_reward: { type: DataTypes.INTEGER, defaultValue: 0 },
   rarity: { type: DataTypes.STRING(20) },
+  course_id: { type: DataTypes.INTEGER },
   is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
   created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, {

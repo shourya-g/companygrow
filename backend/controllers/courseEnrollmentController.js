@@ -156,7 +156,7 @@ module.exports = {
   async updateProgress(req, res) {
     try {
       const { id } = req.params;
-      const { progress_percentage, status } = req.body;
+      const { progress_percentage, status, final_score } = req.body;
       
       const enrollment = await CourseEnrollment.findByPk(id);
       if (!enrollment) {
@@ -181,6 +181,7 @@ module.exports = {
       }
       
       const updateData = {};
+      let courseCompleted = false;
       
       // Validate and set progress percentage
       if (progress_percentage !== undefined) {
@@ -199,7 +200,22 @@ module.exports = {
         if (progress_percentage === 100) {
           updateData.status = 'completed';
           updateData.completion_date = new Date();
+          courseCompleted = true;
         }
+      }
+      
+      // Set final score if provided
+      if (final_score !== undefined) {
+        if (final_score < 0 || final_score > 100) {
+          return res.status(400).json({
+            success: false,
+            error: {
+              message: 'Final score must be between 0 and 100',
+              code: 'INVALID_SCORE'
+            }
+          });
+        }
+        updateData.final_score = final_score;
       }
       
       // Validate and set status
@@ -221,12 +237,29 @@ module.exports = {
           if (!updateData.progress_percentage) {
             updateData.progress_percentage = 100;
           }
+          courseCompleted = true;
         } else if (status === 'in_progress' && enrollment.status === 'enrolled') {
           updateData.start_date = new Date();
         }
       }
       
       await enrollment.update(updateData);
+
+      // Award badges if course was just completed
+      let awardedBadges = [];
+      if (courseCompleted && enrollment.status !== 'completed') {
+        try {
+          const badgeController = require('./badgeController');
+          awardedBadges = await badgeController.awardCourseCompletionBadge(
+            enrollment.user_id, 
+            enrollment.course_id,
+            updateData.final_score || final_score
+          );
+        } catch (badgeError) {
+          console.error('Error awarding course completion badges:', badgeError);
+          // Don't fail the whole request if badge awarding fails
+        }
+      }
       
       // Fetch updated enrollment with related data
       const updatedEnrollment = await CourseEnrollment.findByPk(id, {
@@ -239,7 +272,13 @@ module.exports = {
       res.json({
         success: true,
         message: 'Course progress updated successfully',
-        data: updatedEnrollment
+        data: updatedEnrollment,
+        badges_awarded: awardedBadges.length > 0 ? awardedBadges.map(b => ({
+          id: b.id,
+          name: b.name,
+          rarity: b.rarity,
+          token_reward: b.token_reward
+        })) : []
       });
     } catch (err) {
       console.error('Update course progress error:', err);

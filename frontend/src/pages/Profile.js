@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate, Link } from 'react-router-dom';
 import { logout } from '../store/slices/authSlice';
-import { usersAPI, handleApiError } from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { usersAPI, badgesAPI, handleApiError } from '../services/api';
 import UserSkillManagement from '../components/UserSkillManagement';
 import { 
-  User, Mail, Calendar, MapPin, Briefcase, 
+  User, Mail, Calendar, Briefcase, 
   TrendingUp, Award, BookOpen, LogOut, Edit,
-  CheckCircle, Clock, Star
+  CheckCircle, Star
 } from 'lucide-react';
 import { calculatePortfolioScore } from '../utils/portfolio';
 
@@ -18,6 +18,7 @@ const Profile = () => {
   
   const [userProfile, setUserProfile] = useState(null);
   const [userSkills, setUserSkills] = useState([]);
+  const [userBadges, setUserBadges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
@@ -36,7 +37,7 @@ const Profile = () => {
     if (user && user.id) {
       loadUserProfile();
     }
-  }, [user]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (user) {
@@ -65,6 +66,18 @@ const Profile = () => {
       if (profileResponse.data.data.Skills) {
         setUserSkills(profileResponse.data.data.Skills);
       }
+
+      // Load user badges
+      try {
+        const badgesResponse = await badgesAPI.getUserBadges(user.id);
+        const badgeData = badgesResponse.data.data || [];
+        // Filter to only show earned badges (those with UserBadges array)
+        const earnedBadges = badgeData.filter(badge => badge.UserBadges && badge.UserBadges.length > 0);
+        setUserBadges(earnedBadges);
+      } catch (badgeErr) {
+        console.error('Failed to load user badges:', badgeErr);
+        setUserBadges([]);
+      }
     } catch (err) {
       const errorInfo = handleApiError(err);
       setError(errorInfo.message);
@@ -72,6 +85,7 @@ const Profile = () => {
       // Fallback to basic user data
       setUserProfile(user);
       setUserSkills([]);
+      setUserBadges([]);
     }
     
     setLoading(false);
@@ -133,6 +147,17 @@ const Profile = () => {
     navigate('/login');
   };
 
+  const getBadgeRarityColor = (rarity) => {
+    switch(rarity) {
+      case 'common': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'uncommon': return 'bg-green-100 text-green-800 border-green-200';
+      case 'rare': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'epic': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
   const calculateSkillStats = () => {
     if (!userSkills || userSkills.length === 0) {
       return {
@@ -140,7 +165,9 @@ const Profile = () => {
         verifiedSkills: 0,
         averageProficiency: 0,
         portfolioScore: 0,
-        topCategories: []
+        topCategories: [],
+        totalBadges: userBadges.length,
+        badgesByRarity: {}
       };
     }
 
@@ -160,12 +187,21 @@ const Profile = () => {
       .slice(0, 3)
       .map(([category, count]) => ({ category, count }));
 
+    // Calculate badge statistics
+    const badgesByRarity = {};
+    userBadges.forEach(badge => {
+      const rarity = badge.rarity || 'common';
+      badgesByRarity[rarity] = (badgesByRarity[rarity] || 0) + 1;
+    });
+
     return {
       totalSkills: userSkills.length,
       verifiedSkills,
       averageProficiency: Math.round(averageProficiency * 10) / 10,
       portfolioScore,
-      topCategories
+      topCategories,
+      totalBadges: userBadges.length,
+      badgesByRarity
     };
   };
 
@@ -236,6 +272,13 @@ const Profile = () => {
           </div>
           
           <div className="flex gap-2">
+            <Link
+              to="/browse-profiles"
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <User className="w-4 h-4 mr-2" />
+              Browse Profiles
+            </Link>
             <button
               onClick={handleEditProfile}
               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -262,7 +305,7 @@ const Profile = () => {
       )}
 
       {/* Skills Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -307,6 +350,18 @@ const Profile = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Portfolio Score</p>
               <p className="text-2xl font-bold text-gray-900">{skillStats.portfolioScore}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center">
+            <div className="p-2 bg-orange-100 rounded-lg">
+              <Award className="w-6 h-6 text-orange-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Badges</p>
+              <p className="text-2xl font-bold text-gray-900">{skillStats.totalBadges}</p>
             </div>
           </div>
         </div>
@@ -482,9 +537,73 @@ const Profile = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Badges by Rarity */}
+                {Object.keys(skillStats.badgesByRarity).length > 0 && (
+                  <div className="mt-6">
+                    <h4 className="text-sm font-medium text-gray-600 mb-3">Badges by Rarity</h4>
+                    <div className="space-y-2">
+                      {Object.entries(skillStats.badgesByRarity)
+                        .sort(([,a], [,b]) => b - a)
+                        .map(([rarity, count]) => (
+                        <div key={rarity} className="flex justify-between items-center">
+                          <span className={`text-sm capitalize px-2 py-1 rounded text-xs font-medium ${getBadgeRarityColor(rarity)}`}>
+                            {rarity}
+                          </span>
+                          <span className="text-sm text-gray-600">{count} badge{count !== 1 ? 's' : ''}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
+
+          {/* Badges Section */}
+          {userBadges.length > 0 && (
+            <div className="bg-white rounded-lg shadow p-6 mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Award className="w-5 h-5 mr-2 text-orange-600" />
+                Recent Badges
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {userBadges.slice(0, 6).map((badge) => (
+                  <div key={badge.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 text-sm">{badge.name}</h4>
+                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">{badge.description}</p>
+                        <div className="flex items-center mt-2 space-x-2">
+                          <span className={`px-2 py-1 rounded text-xs font-medium border ${getBadgeRarityColor(badge.rarity)}`}>
+                            {badge.rarity}
+                          </span>
+                          {badge.token_reward > 0 && (
+                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium">
+                              {badge.token_reward} tokens
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-xs text-gray-500">
+                      Earned {badge.UserBadges?.[0]?.earned_date ? new Date(badge.UserBadges[0].earned_date).toLocaleDateString() : 'Recently'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {userBadges.length > 6 && (
+                <div className="mt-4 text-center">
+                  <button 
+                    onClick={() => navigate('/badges')}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    View All Badges ({userBadges.length})
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right Column - Skills Management */}

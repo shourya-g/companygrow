@@ -413,6 +413,17 @@ const MyEnrollments = () => {
                           <Award className="w-3 h-3 mr-1" />
                           Completed on {new Date(enrollment.completion_date).toLocaleDateString()}
                         </span>
+                        {enrollment.final_score && (
+                          <div className="text-xs text-green-600 mt-1">
+                            Final Score: {enrollment.final_score}%
+                            {enrollment.final_score >= 80 && (
+                              <span className="ml-2 inline-flex items-center">
+                                <Award className="w-3 h-3 mr-1" />
+                                Badge Earned!
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

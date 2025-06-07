@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchBadges, createBadge, deleteBadge } from '../services/api';
+import { badgesAPI } from '../services/api';
 import { useSelector } from 'react-redux';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -22,22 +22,30 @@ const Badges = () => {
 
   useEffect(() => {
     loadBadges();
-  }, [authUser]);
+  }, [authUser]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadBadges = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchBadges();
-      const badgeData = Array.isArray(res.data.data) ? res.data.data : [];
+      // Load all available badges
+      const allBadgesRes = await badgesAPI.getAll();
+      const allBadgeData = Array.isArray(allBadgesRes.data.data) ? allBadgesRes.data.data : [];
+      setAllBadges(allBadgeData);
       
-      // For now, show all badges since we don't have the user_badges endpoint
-      // In a real implementation, you'd fetch user_badges for earned badges
-      setAllBadges(badgeData);
-      
-      // Filter earned badges (this would need a proper user_badges endpoint)
-      // For demo purposes, show all badges
-      setBadges(badgeData);
+      // Load user's earned badges
+      if (authUser && authUser.id) {
+        try {
+          const userBadgesRes = await badgesAPI.getUserBadges(authUser.id);
+          const userBadgeData = Array.isArray(userBadgesRes.data.data) ? userBadgesRes.data.data : [];
+          setBadges(userBadgeData);
+        } catch (userBadgeErr) {
+          console.error('Failed to load user badges:', userBadgeErr);
+          setBadges([]);
+        }
+      } else {
+        setBadges([]);
+      }
     } catch (err) {
       setError('Failed to load badges');
       setBadges([]);
@@ -59,7 +67,7 @@ const Badges = () => {
     setCreating(true);
     setError(null);
     try {
-      await createBadge(newBadge);
+      await badgesAPI.create(newBadge);
       setNewBadge({ 
         name: '', 
         description: '', 
@@ -69,7 +77,7 @@ const Badges = () => {
       });
       loadBadges();
     } catch (err) {
-      setError('Failed to create badge');
+      setError(err.response?.data?.error?.message || 'Failed to create badge');
     }
     setCreating(false);
   };
@@ -78,11 +86,11 @@ const Badges = () => {
     if (!window.confirm('Delete this badge?')) return;
     setError(null);
     try {
-      await deleteBadge(id);
-      setBadges(badges.filter(b => b.id !== id));
+      await badgesAPI.delete(id);
       setAllBadges(allBadges.filter(b => b.id !== id));
+      loadBadges(); // Reload to ensure consistency
     } catch (err) {
-      setError('Failed to delete badge');
+      setError(err.response?.data?.error?.message || 'Failed to delete badge');
     }
   };
 
@@ -267,29 +275,47 @@ const Badges = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayBadges.map(badge => (
-                <div key={badge.id} className="border rounded-lg p-6 hover:shadow-md transition-shadow">
+              {displayBadges.map(item => {
+                const badge = viewMode === 'earned' ? item.Badge : item;
+                const userBadge = viewMode === 'earned' ? item : null;
+                
+                return (
+                  <div key={viewMode === 'earned' ? item.id : badge.id} className="border rounded-lg p-6 hover:shadow-md transition-shadow">
                   <div className="mb-4">
-                    <h3 className="font-semibold text-lg text-gray-900 mb-2">{badge.name}</h3>
-                    <p className="text-gray-600 text-sm mb-3">{badge.description}</p>
+                      <h3 className="font-semibold text-lg text-gray-900 mb-2">{badge?.name}</h3>
+                      <p className="text-gray-600 text-sm mb-3">{badge?.description}</p>
                     
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {badge.badge_type && (
+                        {badge?.badge_type && (
                         <span className={`px-2 py-1 rounded text-xs font-medium ${getTypeColor(badge.badge_type)}`}>
                           {badge.badge_type}
                         </span>
                       )}
-                      {badge.rarity && (
+                        {badge?.rarity && (
                         <span className={`px-2 py-1 rounded text-xs font-medium ${getRarityColor(badge.rarity)}`}>
                           {badge.rarity}
                         </span>
                       )}
-                      {badge.token_reward > 0 && (
+                        {badge?.token_reward > 0 && (
                         <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium">
                           {badge.token_reward} tokens
                         </span>
                       )}
                     </div>
+
+                      {viewMode === 'earned' && userBadge && (
+                        <div className="text-xs text-gray-500 mb-3">
+                          <div>Earned: {new Date(userBadge.earned_date).toLocaleDateString()}</div>
+                          {userBadge.notes && (
+                            <div className="mt-1">Notes: {userBadge.notes}</div>
+                          )}
+                          {badge?.Course && (
+                            <div className="mt-1">
+                              From course: <span className="font-medium">{badge.Course.title}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                   </div>
 
                   <div className="flex justify-between items-center">
@@ -309,7 +335,8 @@ const Badges = () => {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

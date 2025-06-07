@@ -1,4 +1,4 @@
-const { Course, Skill, CourseSkill, CourseEnrollment, User } = require('../models');
+const { Course, Skill, CourseSkill, CourseEnrollment, User, Badge } = require('../models');
 const { Op } = require('sequelize');
 
 module.exports = {
@@ -192,6 +192,10 @@ module.exports = {
             as: 'creator',
             attributes: ['id', 'first_name', 'last_name']
           },
+          {
+            model: Badge,
+            attributes: ['id', 'name', 'description', 'rarity', 'token_reward']
+          },
           ...(req.user ? [{
             model: CourseEnrollment,
             where: { user_id: req.user.id },
@@ -305,7 +309,8 @@ module.exports = {
         prerequisites,
         learning_objectives,
         price,
-        skills // Array of {skill_id, skill_level}
+        skills, // Array of {skill_id, skill_level}
+        badge // Badge configuration
       } = req.body;
 
       if (!title || !category || !difficulty_level) {
@@ -348,6 +353,21 @@ module.exports = {
         await CourseSkill.bulkCreate(courseSkills);
       }
 
+      // Create badge if provided
+      let createdBadge = null;
+      if (badge && badge.name && badge.name.trim()) {
+        createdBadge = await Badge.create({
+          name: badge.name.trim(),
+          description: badge.description ? badge.description.trim() : `Badge awarded for completing ${title}`,
+          badge_type: 'course',
+          criteria: `Complete ${title} course with 80% or higher score`,
+          token_reward: badge.token_reward || 0,
+          rarity: badge.rarity || 'common',
+          course_id: course.id,
+          is_active: true
+        });
+      }
+
       // Fetch the created course with related data
       const createdCourse = await Course.findByPk(course.id, {
         include: [
@@ -360,6 +380,10 @@ module.exports = {
             model: User,
             as: 'creator',
             attributes: ['id', 'first_name', 'last_name']
+          },
+          {
+            model: Badge,
+            attributes: ['id', 'name', 'description', 'rarity', 'token_reward']
           }
         ]
       });
@@ -408,6 +432,7 @@ module.exports = {
 
       const updateData = { ...req.body };
       delete updateData.skills; // Handle skills separately
+      delete updateData.badge; // Handle badge separately
 
       await course.update(updateData);
 
@@ -430,6 +455,35 @@ module.exports = {
         }
       }
 
+      // Update badge if provided
+      if (req.body.badge !== undefined) {
+        // Find existing badge for this course
+        const existingBadge = await Badge.findOne({ where: { course_id: course.id } });
+        
+        if (req.body.badge && req.body.badge.name && req.body.badge.name.trim()) {
+          // Create or update badge
+          const badgeData = {
+            name: req.body.badge.name.trim(),
+            description: req.body.badge.description ? req.body.badge.description.trim() : `Badge awarded for completing ${course.title}`,
+            badge_type: 'course',
+            criteria: `Complete ${course.title} course with 80% or higher score`,
+            token_reward: req.body.badge.token_reward || 0,
+            rarity: req.body.badge.rarity || 'common',
+            course_id: course.id,
+            is_active: true
+          };
+          
+          if (existingBadge) {
+            await existingBadge.update(badgeData);
+          } else {
+            await Badge.create(badgeData);
+          }
+        } else if (existingBadge) {
+          // Remove badge if name is empty
+          await existingBadge.destroy();
+        }
+      }
+
       // Fetch updated course with related data
       const updatedCourse = await Course.findByPk(course.id, {
         include: [
@@ -442,6 +496,10 @@ module.exports = {
             model: User,
             as: 'creator',
             attributes: ['id', 'first_name', 'last_name']
+          },
+          {
+            model: Badge,
+            attributes: ['id', 'name', 'description', 'rarity', 'token_reward']
           }
         ]
       });

@@ -6,7 +6,6 @@ import {
   Save, 
   Plus, 
   X, 
-  Upload, 
   AlertCircle,
   BookOpen,
   Target,
@@ -36,7 +35,13 @@ const CourseForm = () => {
     price: '',
     learning_objectives: [''],
     course_materials: [''],
-    skills: [] // Array of { skill_id, skill_level }
+    skills: [], // Array of { skill_id, skill_level }
+    badge: { // Badge awarded on completion
+      name: '',
+      description: '',
+      rarity: 'common',
+      token_reward: 0
+    }
   });
 
   const [availableSkills, setAvailableSkills] = useState([]);
@@ -60,7 +65,7 @@ const CourseForm = () => {
     if (isEditing) {
       loadCourse();
     }
-  }, [id, isEditing]);
+  }, [id, isEditing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadSkills = async () => {
     try {
@@ -94,6 +99,9 @@ const CourseForm = () => {
           skill_id: skill.id,
           skill_level: skill.CourseSkill?.skill_level || 1
         })) : [];
+        // Get badge if course has one
+        const courseBadge = course.Badges && course.Badges.length > 0 ? course.Badges[0] : null;
+        
         setFormData({
           title: course.title || '',
           description: course.description || '',
@@ -108,7 +116,18 @@ const CourseForm = () => {
           price: course.price || '',
           learning_objectives: Array.isArray(course.learning_objectives) && course.learning_objectives.length > 0 ? course.learning_objectives : [''],
           course_materials: Array.isArray(course.course_materials) && course.course_materials.length > 0 ? course.course_materials : [''],
-          skills: courseSkills
+          skills: courseSkills,
+          badge: courseBadge ? {
+            name: courseBadge.name || '',
+            description: courseBadge.description || '',
+            rarity: courseBadge.rarity || 'common',
+            token_reward: courseBadge.token_reward || 0
+          } : {
+            name: '',
+            description: '',
+            rarity: 'common',
+            token_reward: 0
+          }
         });
       }
     } catch (err) {
@@ -175,6 +194,16 @@ const CourseForm = () => {
     setFormData(prev => ({
       ...prev,
       skills: prev.skills.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleBadgeChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      badge: {
+        ...prev.badge,
+        [field]: field === 'token_reward' ? Number(value) || 0 : value
+      }
     }));
   };
 
@@ -251,7 +280,8 @@ const CourseForm = () => {
         price: formData.price ? Number(formData.price) : 0,
         learning_objectives: formData.learning_objectives.filter(obj => obj.trim()),
         course_materials: formData.course_materials.filter(mat => mat.trim()),
-        skills: formData.skills.filter(skill => skill.skill_id)
+        skills: formData.skills.filter(skill => skill.skill_id),
+        badge: formData.badge.name.trim() ? formData.badge : null
       };
 
       let response;
@@ -671,6 +701,87 @@ const CourseForm = () => {
               {fieldErrors.skills && (
                 <p className="text-red-600 text-sm mt-1">{fieldErrors.skills}</p>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Course Completion Badge */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            <Award className="w-5 h-5 mr-2 text-primary-600" />
+            Course Completion Badge
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Configure a badge that will be automatically awarded to students when they complete this course.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Badge Name */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Badge Name
+              </label>
+              <input
+                type="text"
+                value={formData.badge.name}
+                onChange={(e) => handleBadgeChange('name', e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder={`${formData.title ? `${formData.title} Completion` : 'Course Completion'}`}
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Leave blank if you don't want to award a badge for completing this course.
+              </p>
+            </div>
+
+            {/* Badge Description */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Badge Description
+              </label>
+              <textarea
+                value={formData.badge.description}
+                onChange={(e) => handleBadgeChange('description', e.target.value)}
+                rows={3}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Describe what this badge represents and how to earn it"
+              />
+            </div>
+
+            {/* Badge Rarity */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Badge Rarity
+              </label>
+              <select
+                value={formData.badge.rarity}
+                onChange={(e) => handleBadgeChange('rarity', e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              >
+                <option value="common">Common</option>
+                <option value="uncommon">Uncommon</option>
+                <option value="rare">Rare</option>
+                <option value="epic">Epic</option>
+                <option value="legendary">Legendary</option>
+              </select>
+            </div>
+
+            {/* Token Reward */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Token Reward
+              </label>
+              <input
+                type="number"
+                value={formData.badge.token_reward}
+                onChange={(e) => handleBadgeChange('token_reward', e.target.value)}
+                min="0"
+                max="1000"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="0"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Number of tokens awarded with this badge.
+              </p>
             </div>
           </div>
         </div>

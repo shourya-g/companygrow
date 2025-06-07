@@ -42,6 +42,7 @@ Skill.belongsToMany(Project, { through: ProjectSkill, foreignKey: 'skill_id', ot
 // Course Associations
 Course.hasMany(CourseEnrollment, { foreignKey: 'course_id' });
 Course.hasMany(CourseSkill, { foreignKey: 'course_id' });
+Course.hasMany(Badge, { foreignKey: 'course_id' });
 Course.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
 Course.belongsToMany(Skill, { through: CourseSkill, foreignKey: 'course_id', otherKey: 'skill_id' });
 Course.belongsToMany(User, { through: CourseEnrollment, foreignKey: 'course_id', otherKey: 'user_id' });
@@ -56,6 +57,7 @@ Project.belongsToMany(User, { through: ProjectAssignment, foreignKey: 'project_i
 
 // Badge Associations
 Badge.hasMany(UserBadge, { foreignKey: 'badge_id' });
+Badge.belongsTo(Course, { foreignKey: 'course_id' });
 Badge.belongsToMany(User, { through: UserBadge, foreignKey: 'badge_id', otherKey: 'user_id' });
 
 // CourseEnrollment Associations
