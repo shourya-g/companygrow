@@ -1,4 +1,5 @@
 const { CourseEnrollment, Course, User } = require('../models');
+const PointsIntegration = require('../services/pointsIntegration');
 
 module.exports = {
   // Get all course enrollments

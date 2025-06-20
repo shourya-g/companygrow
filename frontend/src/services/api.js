@@ -56,6 +56,7 @@ export const authAPI = {
   resetPassword: (data) => api.post('/auth/reset-password', data),
   getCurrentUser: () => api.get('/auth/me'),
   verifyToken: () => api.get('/auth/verify'),
+  updateUser: (id, data) => api.put(`/users/${id}`, data), // Added missing method
 };
 
 // Legacy auth exports (for backward compatibility)
@@ -179,13 +180,15 @@ export const courseEnrollmentsAPI = {
   unenroll: (id) => api.delete(`/courseEnrollments/${id}`),
 };
 
-// USER SKILLS API (legacy support)
+// USER SKILLS API
 export const userSkillsAPI = {
   getAll: () => api.get('/userSkills'),
   getById: (id) => api.get(`/userSkills/${id}`),
   create: (data) => api.post('/userSkills', data),
   update: (id, data) => api.put(`/userSkills/${id}`, data),
   delete: (id) => api.delete(`/userSkills/${id}`),
+  getUserStats: (userId) => api.get(`/userSkills/stats/${userId}`),
+  bulkUpdate: (updates) => api.put('/userSkills/bulk-update', { updates }),
 };
 
 // Legacy user skill exports
@@ -224,6 +227,38 @@ export const dashboardAPI = {
 // Additional dashboard exports
 export const fetchDashboardOverview = dashboardAPI.getOverview;
 
+// PROJECT ASSIGNMENTS API
+export const projectAssignmentsAPI = {
+  getAll: () => api.get('/projectAssignments'),
+  getById: (id) => api.get(`/projectAssignments/${id}`),
+  getRecommendations: (projectId) => api.get(`/projectAssignments/recommendations/${projectId}`),
+  getStatistics: () => api.get('/projectAssignments/statistics'),
+  getUserAssignments: (userId) => api.get(`/projectAssignments/user/${userId}`),
+  getProjectAssignments: (projectId) => api.get(`/projectAssignments/project/${projectId}`),
+  assignUser: (data) => api.post('/projectAssignments', data),
+  update: (id, data) => api.put(`/projectAssignments/${id}`, data),
+  remove: (id) => api.delete(`/projectAssignments/${id}`),
+};
+
+// LEADERBOARD API
+export const leaderboardAPI = {
+  getLeaderboard: (period = 'all', limit = 50) => api.get(`/leaderboard?period=${period}&limit=${limit}`),
+  getUserPosition: (userId, period = 'all') => api.get(`/leaderboard/user/${userId}?period=${period}`),
+  getUserAchievements: (userId) => api.get(`/leaderboard/user/${userId}/achievements`),
+  getStats: () => api.get('/leaderboard/stats'),
+  getRecentActivity: (limit = 20) => api.get(`/leaderboard/activity?limit=${limit}`),
+  getDepartmentLeaderboard: (department, period = 'all', limit = 20) => 
+    api.get(`/leaderboard/department/${department}?period=${period}&limit=${limit}`),
+  awardPoints: (data) => api.post('/leaderboard/award', data),
+};
+
+// Legacy project assignment exports (for backward compatibility)
+export const fetchProjectAssignments = projectAssignmentsAPI.getAll;
+export const createProjectAssignment = projectAssignmentsAPI.assignUser;
+export const updateProjectAssignment = projectAssignmentsAPI.update;
+export const deleteProjectAssignment = projectAssignmentsAPI.remove;
+export const fetchAssignmentRecommendations = projectAssignmentsAPI.getRecommendations;
+
 // Utility function to handle API errors
 export const handleApiError = (error) => {
   if (error.response?.data?.error) {
@@ -259,22 +294,3 @@ export const tokenUtils = {
     }
   },
 };
-// PROJECT ASSIGNMENTS API
-export const projectAssignmentsAPI = {
-  getAll: () => api.get('/projectAssignments'),
-  getById: (id) => api.get(`/projectAssignments/${id}`),
-  getRecommendations: (projectId) => api.get(`/projectAssignments/recommendations/${projectId}`),
-  getStatistics: () => api.get('/projectAssignments/statistics'),
-  getUserAssignments: (userId) => api.get(`/projectAssignments/user/${userId}`),
-  getProjectAssignments: (projectId) => api.get(`/projectAssignments/project/${projectId}`),
-  assignUser: (data) => api.post('/projectAssignments', data),
-  update: (id, data) => api.put(`/projectAssignments/${id}`, data),
-  remove: (id) => api.delete(`/projectAssignments/${id}`),
-};
-
-// Legacy project assignment exports (for backward compatibility)
-export const fetchProjectAssignments = projectAssignmentsAPI.getAll;
-export const createProjectAssignment = projectAssignmentsAPI.assignUser;
-export const updateProjectAssignment = projectAssignmentsAPI.update;
-export const deleteProjectAssignment = projectAssignmentsAPI.remove;
-export const fetchAssignmentRecommendations = projectAssignmentsAPI.getRecommendations;

@@ -24,10 +24,49 @@ exports.getProjectById = async (req, res) => {
 // POST /api/projects - Create new project
 exports.createProject = async (req, res) => {
   try {
+    // Check Content-Type header
+    if (req.headers['content-type'] !== 'application/json') {
+      return res.status(415).json({
+        success: false,
+        error: { code: 'UNSUPPORTED_MEDIA_TYPE', message: 'Content-Type must be application/json' },
+      });
+    }
+
+    // Validate request body
+    const { name, description, startDate, endDate } = req.body;
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'BAD_REQUEST', message: 'Project name is required and must be a string' },
+      });
+    }
+    if (description && typeof description !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'BAD_REQUEST', message: 'Description must be a string' },
+      });
+    }
+    if (startDate && isNaN(Date.parse(startDate))) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'BAD_REQUEST', message: 'Invalid start date format' },
+      });
+    }
+    if (endDate && isNaN(Date.parse(endDate))) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'BAD_REQUEST', message: 'Invalid end date format' },
+      });
+    }
+
+    // Create project
     const project = await Project.create(req.body);
     res.status(201).json({ success: true, data: project });
   } catch (err) {
-    res.status(400).json({ success: false, error: { code: 'BAD_REQUEST', message: err.message } });
+    res.status(500).json({
+      success: false,
+      error: { code: 'INTERNAL_SERVER_ERROR', message: err.message },
+    });
   }
 };
 

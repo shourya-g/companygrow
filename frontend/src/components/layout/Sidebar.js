@@ -10,7 +10,11 @@ import {
   Award,
   Users,
   Settings,
-  UserCheck
+  UserCheck,
+  
+  
+  Trophy,
+  Target
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -22,6 +26,12 @@ const Sidebar = () => {
       { to: '/courses', icon: BookOpen, label: 'Courses' },
       { to: '/projects', icon: FolderOpen, label: 'Projects' },
       { to: '/profile', icon: User, label: 'Profile' },
+      { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  
+  { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
+  { to: '/achievements', icon: Target, label: 'Achievements' },
+  { to: '/profile', icon: User, label: 'Profile' },
+  { to: '/analytics', icon: BarChart3, label: 'Analytics' },
     ];
 
     // Add admin/manager specific items

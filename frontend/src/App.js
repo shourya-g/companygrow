@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Provider, useSelector, useDispatch } from 'react-redux';
 import { store } from './store/store';
 import { verifyToken, updateActivity } from './store/slices/authSlice';
+import Leaderboard from './pages/Leaderboard';
+import Achievements from './pages/Achievements';
 
 // Layout components
 import Navbar from './components/layout/Navbar';
@@ -159,7 +161,21 @@ function AppContent() {
             <Register />
           </PublicRoute>
         } />
+        <Route path="/leaderboard" element={
+  <RequireAuth>
+    <MainLayout>
+      <Leaderboard />
+    </MainLayout>
+  </RequireAuth>
+} />
 
+<Route path="/achievements" element={
+  <RequireAuth>
+    <MainLayout>
+      <Achievements />
+    </MainLayout>
+  </RequireAuth>
+} />
         {/* Protected Routes */}
         <Route path="/" element={
           <RequireAuth>

@@ -40,7 +40,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static files
 app.use('/uploads', express.static('uploads'));
-
+// Add this with other route declarations
+app.use('/api/leaderboard', auth, require('./routes/leaderboard'));
 // Public Routes (no authentication required)
 app.use('/api/auth', authLimiter, require('./routes/auth'));
 

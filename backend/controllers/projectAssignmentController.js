@@ -1,5 +1,6 @@
 const { ProjectAssignment, Project, User, Skill, UserSkill, ProjectSkill } = require('../models');
 const { Op } = require('sequelize');
+const PointsIntegration = require('../services/pointsIntegration');
 
 module.exports = {
   // Get all project assignments
@@ -474,6 +475,14 @@ module.exports = {
         status: 'active',
         assignment_date: new Date()
       });
+
+      // Award points for project assignment
+      try {
+        await PointsIntegration.onProjectAssigned(user_id, project_id);
+      } catch (pointsError) {
+        console.warn('Failed to award project assignment points:', pointsError);
+        // Don't fail the assignment if points fail
+      }
       
       // Fetch the created assignment with related data
       const createdAssignment = await ProjectAssignment.findByPk(assignment.id, {
@@ -533,6 +542,7 @@ module.exports = {
       }
       
       const updateData = {};
+      const previousStatus = assignment.status;
       
       // Only managers/admins can update these fields
       if (['admin', 'manager'].includes(req.user.role)) {
@@ -614,6 +624,19 @@ module.exports = {
       }
       
       await assignment.update(updateData);
+ 
+      // Award points for project completion
+      try {
+        const finalStatus = updateData.status || assignment.status;
+        
+        // Award completion points if project was just completed
+        if (finalStatus === 'completed' && previousStatus !== 'completed') {
+          await PointsIntegration.onProjectCompleted(assignment.user_id, assignment.project_id);
+        }
+      } catch (pointsError) {
+        console.warn('Failed to award project completion points:', pointsError);
+        // Don't fail the update if points fail
+      }
       
       // Fetch updated assignment with related data
       const updatedAssignment = await ProjectAssignment.findByPk(id, {
@@ -639,7 +662,7 @@ module.exports = {
       });
     }
   },
-
+ 
   // Remove user from project
   async removeUserFromProject(req, res) {
     try {
@@ -684,7 +707,7 @@ module.exports = {
       });
     }
   },
-
+ 
   // Get assignments for a specific user
   async getUserAssignments(req, res) {
     try {
@@ -734,7 +757,7 @@ module.exports = {
       });
     }
   },
-
+ 
   // Get assignments for a specific project
   async getProjectAssignments(req, res) {
     try {
@@ -775,7 +798,7 @@ module.exports = {
       });
     }
   },
-
+ 
   // Get assignment statistics
   async getAssignmentStatistics(req, res) {
     try {
@@ -789,7 +812,7 @@ module.exports = {
           }
         });
       }
-
+ 
       const stats = {
         total_assignments: await ProjectAssignment.count(),
         active_assignments: await ProjectAssignment.count({ where: { status: 'active' } }),
@@ -823,7 +846,7 @@ module.exports = {
         // Workload distribution
         workload_distribution: []
       };
-
+ 
       // Calculate average assignments per active user
       const activeUsers = await User.findAll({
         where: { is_active: true },
@@ -835,7 +858,7 @@ module.exports = {
           }
         ]
       });
-
+ 
       if (activeUsers.length > 0) {
         const totalAssignments = activeUsers.reduce((sum, user) => 
           sum + (user.ProjectAssignments ? user.ProjectAssignments.length : 0), 0
@@ -858,7 +881,7 @@ module.exports = {
           user_count: users
         }));
       }
-
+ 
       res.json({
         success: true,
         data: stats
@@ -874,4 +897,4 @@ module.exports = {
       });
     }
   }
-};
+ };

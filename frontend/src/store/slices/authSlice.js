@@ -107,6 +107,7 @@ export const updateUserProfile = createAsyncThunk(
   'auth/updateUserProfile',
   async ({ userId, userData }, { rejectWithValue }) => {
     try {
+      // Use authAPI.updateUser instead of the non-existent method
       const response = await authAPI.updateUser(userId, userData);
       
       // Update user in localStorage

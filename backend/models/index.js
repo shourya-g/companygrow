@@ -15,6 +15,11 @@ const Project = require('./project');
 const ProjectAssignment = require('./projectAssignment');
 const ProjectSkill = require('./projectSkill');
 const AppSetting = require('./appSetting');
+const LeaderboardPoint = require('./leaderboardPoint');
+const UserLeaderboardStats = require('./userLeaderboardStats');
+const LeaderboardAchievement = require('./leaderboardAchievement');
+const UserAchievement = require('./userAchievement');
+const LeaderboardSeason = require('./leaderboardSeason');
 
 // User Associations
 User.hasMany(CourseEnrollment, { foreignKey: 'user_id' });
@@ -30,6 +35,16 @@ User.hasMany(PerformanceReview, { foreignKey: 'reviewer_id', as: 'reviewerReview
 User.hasOne(UserToken, { foreignKey: 'user_id' });
 User.belongsToMany(Skill, { through: UserSkill, foreignKey: 'user_id', otherKey: 'skill_id' });
 User.belongsToMany(Badge, { through: UserBadge, foreignKey: 'user_id', otherKey: 'badge_id' });
+User.hasMany(LeaderboardPoint, { foreignKey: 'user_id' });
+User.hasOne(UserLeaderboardStats, { foreignKey: 'user_id' });
+User.belongsToMany(LeaderboardAchievement, { through: UserAchievement, foreignKey: 'user_id', otherKey: 'achievement_id' });
+
+LeaderboardPoint.belongsTo(User, { foreignKey: 'user_id' });
+UserLeaderboardStats.belongsTo(User, { foreignKey: 'user_id' });
+LeaderboardAchievement.belongsToMany(User, { through: UserAchievement, foreignKey: 'achievement_id', otherKey: 'user_id' });
+
+UserAchievement.belongsTo(User, { foreignKey: 'user_id' });
+UserAchievement.belongsTo(LeaderboardAchievement, { foreignKey: 'achievement_id' });
 
 // Skill Associations
 Skill.hasMany(UserSkill, { foreignKey: 'skill_id' });
@@ -93,6 +108,9 @@ UserBadge.belongsTo(User, { foreignKey: 'user_id' });
 UserBadge.belongsTo(Badge, { foreignKey: 'badge_id' });
 UserBadge.belongsTo(User, { foreignKey: 'awarded_by', as: 'awarder' });
 
+UserSkill.belongsTo(Skill, { foreignKey: 'skill_id' });
+User.hasMany(UserSkill, { foreignKey: 'user_id' });
+Skill.hasMany(UserSkill, { foreignKey: 'skill_id' });
 // AppSetting: no associations
 
 module.exports = {
@@ -112,5 +130,10 @@ module.exports = {
   Project,
   ProjectAssignment,
   ProjectSkill,
-  AppSetting
+  AppSetting,
+  LeaderboardPoint,
+  UserLeaderboardStats,
+  LeaderboardAchievement,
+  UserAchievement,
+  LeaderboardSeason
 };

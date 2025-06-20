@@ -2,6 +2,7 @@ const { User } = require('../models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
+const PointsIntegration = require('../services/pointsIntegration');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 const JWT_EXPIRE = process.env.JWT_EXPIRE || '7d';
@@ -137,6 +138,14 @@ module.exports = {
       // Update last login
       await user.update({ last_login: new Date() });
 
+      // Award welcome bonus points
+      try {
+        await PointsIntegration.onUserRegistered(user.id);
+      } catch (pointsError) {
+        console.warn('Failed to award registration points:', pointsError);
+        // Don't fail registration if points fail
+      }
+
       res.status(201).json({ 
         success: true,
         message: 'User registered successfully',
@@ -218,6 +227,14 @@ module.exports = {
 
       // Update last login
       await user.update({ last_login: new Date() });
+
+      // Award daily activity points
+      try {
+        await PointsIntegration.onDailyLogin(user.id);
+      } catch (pointsError) {
+        console.warn('Failed to award daily login points:', pointsError);
+        // Don't fail login if points fail
+      }
 
       res.json({ 
         success: true,
@@ -315,6 +332,19 @@ module.exports = {
       });
 
       await user.update(updateData);
+
+      // Award profile completion points if this is a significant update
+      try {
+        const significantFields = ['first_name', 'last_name', 'department', 'position', 'bio'];
+        const hasSignificantUpdate = significantFields.some(field => updateData[field]);
+        
+        if (hasSignificantUpdate) {
+          await PointsIntegration.onProfileUpdated(user.id);
+        }
+      } catch (pointsError) {
+        console.warn('Failed to award profile update points:', pointsError);
+        // Don't fail update if points fail
+      }
       
       res.json({ 
         success: true,
