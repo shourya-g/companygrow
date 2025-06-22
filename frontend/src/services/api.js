@@ -245,7 +245,7 @@ export const updateProjectAssignment = projectAssignmentsAPI.update;
 export const deleteProjectAssignment = projectAssignmentsAPI.remove;
 export const fetchAssignmentRecommendations = projectAssignmentsAPI.getRecommendations;
 
-// ANALYTICS API
+// ANALYTICS API - Updated to match the new analytics controller
 export const analyticsAPI = {
   getDashboard: () => api.get('/analytics/dashboard'),
   getUserStats: () => api.get('/analytics/users'),
@@ -254,7 +254,24 @@ export const analyticsAPI = {
   getCourseStats: () => api.get('/analytics/courses'),
   getPaymentStats: () => api.get('/analytics/payments'),
   getTokenStats: () => api.get('/analytics/tokens'),
+  getBadgeStats: () => api.get('/analytics/badges'),
+  getComprehensiveReport: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/analytics/report${queryString ? `?${queryString}` : ''}`);
+  },
   getMonthlyPerformance: () => api.get('/analytics/performance/monthly'),
+};
+
+// PROJECT SKILLS API
+export const projectSkillsAPI = {
+  getAll: () => api.get('/projectSkills'),
+  getById: (id) => api.get(`/projectSkills/${id}`),
+  getProjectSkills: (projectId) => api.get(`/projectSkills/project/${projectId}`),
+  getSkillProjects: (skillId) => api.get(`/projectSkills/skill/${skillId}`),
+  addSkillToProject: (data) => api.post('/projectSkills', data),
+  updateProjectSkill: (id, data) => api.put(`/projectSkills/${id}`, data),
+  removeSkillFromProject: (id) => api.delete(`/projectSkills/${id}`),
+  getProjectSkillAnalysis: (projectId) => api.get(`/projectSkills/analysis/${projectId}`),
 };
 
 // Utility function to handle API errors
@@ -293,13 +310,4 @@ export const tokenUtils = {
   },
 };
 
-// PROJECT SKILLS API
-export const projectSkillsAPI = {
-  getAll: () => api.get('/projectSkills'),
-  getById: (id) => api.get(`/projectSkills/${id}`),
-  getProjectSkills: (projectId) => api.get(`/projectSkills/project/${projectId}`),
-  getSkillProjects: (skillId) => api.get(`/projectSkills/skill/${skillId}`),
-  addSkillToProject: (data) => api.post('/projectSkills', data),
-  updateProjectSkill: (id, data) => api.put(`/projectSkills/${id}`, data),
-  removeSkillFromProject: (id) => api.delete(`/projectSkills/${id}`),
-};
+export default api;

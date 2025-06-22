@@ -28,6 +28,8 @@ User.hasMany(Notification, { foreignKey: 'user_id' });
 User.hasMany(PerformanceReview, { foreignKey: 'employee_id', as: 'employeeReviews' });
 User.hasMany(PerformanceReview, { foreignKey: 'reviewer_id', as: 'reviewerReviews' });
 User.hasOne(UserToken, { foreignKey: 'user_id' });
+User.hasMany(UserSkill, { foreignKey: 'user_id' });
+User.hasMany(UserBadge, { foreignKey: 'user_id' });
 User.belongsToMany(Skill, { through: UserSkill, foreignKey: 'user_id', otherKey: 'skill_id' });
 User.belongsToMany(Badge, { through: UserBadge, foreignKey: 'user_id', otherKey: 'badge_id' });
 
@@ -43,6 +45,7 @@ Skill.belongsToMany(Project, { through: ProjectSkill, foreignKey: 'skill_id', ot
 Course.hasMany(CourseEnrollment, { foreignKey: 'course_id' });
 Course.hasMany(CourseSkill, { foreignKey: 'course_id' });
 Course.hasMany(Badge, { foreignKey: 'course_id' });
+
 Course.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
 Course.belongsToMany(Skill, { through: CourseSkill, foreignKey: 'course_id', otherKey: 'skill_id' });
 Course.belongsToMany(User, { through: CourseEnrollment, foreignKey: 'course_id', otherKey: 'user_id' });
@@ -58,6 +61,7 @@ Project.belongsToMany(User, { through: ProjectAssignment, foreignKey: 'project_i
 // Badge Associations
 Badge.hasMany(UserBadge, { foreignKey: 'badge_id' });
 Badge.belongsTo(Course, { foreignKey: 'course_id' });
+
 Badge.belongsToMany(User, { through: UserBadge, foreignKey: 'badge_id', otherKey: 'user_id' });
 
 // CourseEnrollment Associations
@@ -87,15 +91,18 @@ Notification.belongsTo(User, { foreignKey: 'user_id' });
 // Pivot Table Associations
 UserSkill.belongsTo(User, { foreignKey: 'user_id' });
 UserSkill.belongsTo(Skill, { foreignKey: 'skill_id' });
+
 CourseSkill.belongsTo(Course, { foreignKey: 'course_id' });
 CourseSkill.belongsTo(Skill, { foreignKey: 'skill_id' });
+
 ProjectSkill.belongsTo(Project, { foreignKey: 'project_id' });
 ProjectSkill.belongsTo(Skill, { foreignKey: 'skill_id' });
+
 UserBadge.belongsTo(User, { foreignKey: 'user_id' });
 UserBadge.belongsTo(Badge, { foreignKey: 'badge_id' });
 UserBadge.belongsTo(User, { foreignKey: 'awarded_by', as: 'awarder' });
 
-// AppSetting: no associations
+// AppSetting: no associations needed
 
 module.exports = {
   User,
