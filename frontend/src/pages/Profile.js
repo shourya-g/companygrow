@@ -7,7 +7,7 @@ import UserSkillManagement from '../components/UserSkillManagement';
 import { 
   User, Mail, Calendar, Briefcase, 
   TrendingUp, Award, BookOpen, LogOut, Edit,
-  CheckCircle, Star
+  CheckCircle, Star, Phone, MapPin
 } from 'lucide-react';
 import { calculatePortfolioScore } from '../utils/portfolio';
 
@@ -209,9 +209,11 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
         </div>
       </div>
     );
@@ -219,16 +221,18 @@ const Profile = () => {
 
   if (!user) {
     return (
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">No User Found</h1>
-          <p className="text-gray-600 mb-4">Please login to view your profile.</p>
-          <button 
-            onClick={() => navigate('/login')}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
-          >
-            Go to Login
-          </button>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">No User Found</h1>
+            <p className="text-gray-600 mb-4">Please login to view your profile.</p>
+            <button 
+              onClick={() => navigate('/login')}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Go to Login
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -237,383 +241,386 @@ const Profile = () => {
   const displayProfile = userProfile || user;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* Header Section */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center space-x-6">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-              <User className="w-10 h-10 text-blue-600" />
-            </div>
-            
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {displayProfile.first_name && displayProfile.last_name 
-                  ? `${displayProfile.first_name} ${displayProfile.last_name}` 
-                  : displayProfile.name || displayProfile.email}
-              </h1>
-              <div className="flex items-center text-gray-600 mt-1">
-                <Mail className="w-4 h-4 mr-2" />
-                <span>{displayProfile.email}</span>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Hero Section with Profile Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-xl overflow-hidden mb-8">
+          <div className="px-8 py-12">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-center space-x-6 mb-6 lg:mb-0">
+                <div className="w-24 h-24 bg-white/20 backdrop-blur rounded-full flex items-center justify-center ring-4 ring-white/30">
+                  <User className="w-12 h-12 text-white" />
+                </div>
+                
+                <div className="text-white">
+                  <h1 className="text-3xl font-bold mb-2">
+                    {displayProfile.first_name && displayProfile.last_name 
+                      ? `${displayProfile.first_name} ${displayProfile.last_name}` 
+                      : displayProfile.name || displayProfile.email}
+                  </h1>
+                  <div className="space-y-2 text-blue-100">
+                    <div className="flex items-center">
+                      <Mail className="w-4 h-4 mr-2" />
+                      <span>{displayProfile.email}</span>
+                    </div>
+                    {displayProfile.position && displayProfile.department && (
+                      <div className="flex items-center">
+                        <Briefcase className="w-4 h-4 mr-2" />
+                        <span>{displayProfile.position} • {displayProfile.department}</span>
+                      </div>
+                    )}
+                    {displayProfile.hire_date && (
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        <span>Joined {new Date(displayProfile.hire_date).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-              {displayProfile.position && displayProfile.department && (
-                <div className="flex items-center text-gray-600 mt-1">
-                  <Briefcase className="w-4 h-4 mr-2" />
-                  <span>{displayProfile.position} • {displayProfile.department}</span>
-                </div>
-              )}
-              {displayProfile.hire_date && (
-                <div className="flex items-center text-gray-600 mt-1">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  <span>Joined {new Date(displayProfile.hire_date).toLocaleDateString()}</span>
-                </div>
-              )}
+              
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  to="/browse-profiles"
+                  className="flex items-center px-4 py-2 bg-white/20 backdrop-blur text-white rounded-lg hover:bg-white/30 transition-colors border border-white/30"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Browse Profiles
+                </Link>
+                <button
+                  onClick={handleEditProfile}
+                  className="flex items-center px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </button>
+                <button 
+                  onClick={handleLogout} 
+                  className="flex items-center px-4 py-2 bg-white/20 backdrop-blur text-white rounded-lg hover:bg-white/30 transition-colors border border-white/30"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-8">
+            <div className="text-red-600">{error}</div>
+          </div>
+        )}
+
+        {/* Stats Cards - Improved Layout */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <BookOpen className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Skills</p>
+                <p className="text-2xl font-bold text-gray-900">{skillStats.totalSkills}</p>
+              </div>
             </div>
           </div>
           
-          <div className="flex gap-2">
-            <Link
-              to="/browse-profiles"
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <User className="w-4 h-4 mr-2" />
-              Browse Profiles
-            </Link>
-            <button
-              onClick={handleEditProfile}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
-            </button>
-            <button 
-              onClick={handleLogout} 
-              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </button>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center">
+              <div className="p-3 bg-green-100 rounded-lg">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Verified</p>
+                <p className="text-2xl font-bold text-gray-900">{skillStats.verifiedSkills}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center">
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Portfolio Score</p>
+                <p className="text-2xl font-bold text-gray-900">{skillStats.portfolioScore}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center">
+              <div className="p-3 bg-orange-100 rounded-lg">
+                <Award className="w-6 h-6 text-orange-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Badges</p>
+                <p className="text-2xl font-bold text-gray-900">{skillStats.totalBadges}</p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="text-red-600">{error}</div>
-        </div>
-      )}
-
-      {/* Skills Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <BookOpen className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Skills</p>
-              <p className="text-2xl font-bold text-gray-900">{skillStats.totalSkills}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Verified</p>
-              <p className="text-2xl font-bold text-gray-900">{skillStats.verifiedSkills}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Star className="w-6 h-6 text-yellow-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Avg Proficiency</p>
-              <p className="text-2xl font-bold text-gray-900">{skillStats.averageProficiency}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Portfolio Score</p>
-              <p className="text-2xl font-bold text-gray-900">{skillStats.portfolioScore}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <Award className="w-6 h-6 text-orange-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Badges</p>
-              <p className="text-2xl font-bold text-gray-900">{skillStats.totalBadges}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Profile Details */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow p-6">
-            {editing ? (
-              <form onSubmit={handleSaveProfile} className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit Profile</h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      value={editForm.first_name}
-                      onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Profile Details */}
+          <div className="lg:col-span-1 space-y-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              {editing ? (
+                <form onSubmit={handleSaveProfile} className="space-y-6">
+                  <div className="border-b border-gray-200 pb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Edit Profile</h3>
+                    <p className="text-sm text-gray-600 mt-1">Update your personal information</p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      value={editForm.last_name}
-                      onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
+                  
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          First Name
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.first_name}
+                          onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Last Name
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.last_name}
+                          onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={editForm.email}
+                        onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Department
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.department}
+                          onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Position
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.position}
+                          onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={editForm.phone}
+                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Address
+                      </label>
+                      <textarea
+                        value={editForm.address}
+                        onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                        rows="3"
+                      />
+                    </div>
                   </div>
-                </div>
-                
+                  
+                  <div className="flex gap-3 pt-4 border-t border-gray-200">
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="flex-1 bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
+                    >
+                      {saving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      className="flex-1 bg-gray-100 text-gray-700 py-2.5 px-4 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
+                  <div className="border-b border-gray-200 pb-4 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900">Profile Details</h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-600">Role</span>
+                      <span className="text-sm text-gray-900 capitalize font-medium">{displayProfile.role}</span>
+                    </div>
+                    
+                    {displayProfile.phone && (
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <div className="flex items-center">
+                          <Phone className="w-4 h-4 text-gray-400 mr-2" />
+                          <span className="text-sm font-medium text-gray-600">Phone</span>
+                        </div>
+                        <span className="text-sm text-gray-900">{displayProfile.phone}</span>
+                      </div>
+                    )}
+                    
+                    {displayProfile.address && (
+                      <div className="flex items-start justify-between py-3 border-b border-gray-100">
+                        <div className="flex items-center">
+                          <MapPin className="w-4 h-4 text-gray-400 mr-2 mt-0.5" />
+                          <span className="text-sm font-medium text-gray-600">Address</span>
+                        </div>
+                        <span className="text-sm text-gray-900 text-right max-w-48">{displayProfile.address}</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-600">Member Since</span>
+                      <span className="text-sm text-gray-900">
+                        {new Date(displayProfile.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between py-3">
+                      <span className="text-sm font-medium text-gray-600">Last Active</span>
+                      <span className="text-sm text-gray-900">
+                        {displayProfile.last_login 
+                          ? new Date(displayProfile.last_login).toLocaleDateString()
+                          : 'Never'
+                        }
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Top Skill Categories */}
+                  {skillStats.topCategories.length > 0 && (
+                    <div className="mt-8 pt-6 border-t border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-4">Top Skill Areas</h4>
+                      <div className="space-y-3">
+                        {skillStats.topCategories.map(({ category, count }, index) => (
+                          <div key={category} className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className={`w-2 h-2 rounded-full mr-3 ${
+                                index === 0 ? 'bg-blue-500' : 
+                                index === 1 ? 'bg-green-500' : 'bg-purple-500'
+                              }`}></div>
+                              <span className="text-sm text-gray-900 capitalize font-medium">{category}</span>
+                            </div>
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                              {count} skill{count !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Department
-                  </label>
-                  <input
-                    type="text"
-                    value={editForm.department}
-                    onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+              )}
+            </div>
+
+            {/* Badges Section - Redesigned */}
+            {userBadges.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div className="border-b border-gray-200 pb-4 mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <Award className="w-5 h-5 mr-2 text-orange-500" />
+                    Recent Achievements
+                  </h3>
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Position
-                  </label>
-                  <input
-                    type="text"
-                    value={editForm.position}
-                    onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    value={editForm.phone}
-                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Address
-                  </label>
-                  <textarea
-                    value={editForm.address}
-                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows="3"
-                  />
-                </div>
-                
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                  >
-                    {saving ? 'Saving...' : 'Save Changes'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCancelEdit}
-                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Details</h3>
                 
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">Role</label>
-                    <p className="text-gray-900 capitalize">{displayProfile.role}</p>
-                  </div>
-                  
-                  {displayProfile.phone && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600">Phone</label>
-                      <p className="text-gray-900">{displayProfile.phone}</p>
+                  {userBadges.slice(0, 4).map((badge) => (
+                    <div key={badge.id} className="border border-gray-100 rounded-lg p-4 hover:shadow-sm transition-shadow bg-gray-50/50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 text-sm">{badge.name}</h4>
+                          <p className="text-xs text-gray-600 mt-1 line-clamp-2">{badge.description}</p>
+                          <div className="flex items-center mt-3 space-x-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getBadgeRarityColor(badge.rarity)}`}>
+                              {badge.rarity}
+                            </span>
+                            {badge.token_reward > 0 && (
+                              <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                                +{badge.token_reward} tokens
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">
+                        {badge.UserBadges?.[0]?.earned_date ? new Date(badge.UserBadges[0].earned_date).toLocaleDateString() : 'Recently earned'}
+                      </div>
                     </div>
-                  )}
-                  
-                  {displayProfile.address && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600">Address</label>
-                      <p className="text-gray-900">{displayProfile.address}</p>
-                    </div>
-                  )}
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">Member Since</label>
-                    <p className="text-gray-900">
-                      {new Date(displayProfile.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">Last Login</label>
-                    <p className="text-gray-900">
-                      {displayProfile.last_login 
-                        ? new Date(displayProfile.last_login).toLocaleDateString()
-                        : 'Never'
-                      }
-                    </p>
-                  </div>
+                  ))}
                 </div>
-
-                {/* Top Skill Categories */}
-                {skillStats.topCategories.length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="text-sm font-medium text-gray-600 mb-3">Top Skill Categories</h4>
-                    <div className="space-y-2">
-                      {skillStats.topCategories.map(({ category, count }) => (
-                        <div key={category} className="flex justify-between items-center">
-                          <span className="text-sm text-gray-900 capitalize">{category}</span>
-                          <span className="text-sm text-gray-600">{count} skill{count !== 1 ? 's' : ''}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Badges by Rarity */}
-                {Object.keys(skillStats.badgesByRarity).length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="text-sm font-medium text-gray-600 mb-3">Badges by Rarity</h4>
-                    <div className="space-y-2">
-                      {Object.entries(skillStats.badgesByRarity)
-                        .sort(([,a], [,b]) => b - a)
-                        .map(([rarity, count]) => (
-                        <div key={rarity} className="flex justify-between items-center">
-                          <span className={`text-sm capitalize px-2 py-1 rounded text-xs font-medium ${getBadgeRarityColor(rarity)}`}>
-                            {rarity}
-                          </span>
-                          <span className="text-sm text-gray-600">{count} badge{count !== 1 ? 's' : ''}</span>
-                        </div>
-                      ))}
-                    </div>
+                
+                {userBadges.length > 4 && (
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <button 
+                      onClick={() => navigate('/badges')}
+                      className="w-full text-blue-600 hover:text-blue-700 text-sm font-medium hover:bg-blue-50 py-2 rounded-lg transition-colors"
+                    >
+                      View All Badges ({userBadges.length})
+                    </button>
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          {/* Badges Section */}
-          {userBadges.length > 0 && (
-            <div className="bg-white rounded-lg shadow p-6 mt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Award className="w-5 h-5 mr-2 text-orange-600" />
-                Recent Badges
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {userBadges.slice(0, 6).map((badge) => (
-                  <div key={badge.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900 text-sm">{badge.name}</h4>
-                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">{badge.description}</p>
-                        <div className="flex items-center mt-2 space-x-2">
-                          <span className={`px-2 py-1 rounded text-xs font-medium border ${getBadgeRarityColor(badge.rarity)}`}>
-                            {badge.rarity}
-                          </span>
-                          {badge.token_reward > 0 && (
-                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium">
-                              {badge.token_reward} tokens
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-3 text-xs text-gray-500">
-                      Earned {badge.UserBadges?.[0]?.earned_date ? new Date(badge.UserBadges[0].earned_date).toLocaleDateString() : 'Recently'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {userBadges.length > 6 && (
-                <div className="mt-4 text-center">
-                  <button 
-                    onClick={() => navigate('/badges')}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                  >
-                    View All Badges ({userBadges.length})
-                  </button>
-                </div>
-              )}
+          {/* Right Column - Skills Management */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <UserSkillManagement
+                userId={user.id}
+                isOwnProfile={true}
+                onSkillsChange={handleSkillsChange}
+              />
             </div>
-          )}
-        </div>
-
-        {/* Right Column - Skills Management */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow p-6">
-            <UserSkillManagement
-              userId={user.id}
-              isOwnProfile={true}
-              onSkillsChange={handleSkillsChange}
-            />
           </div>
         </div>
       </div>

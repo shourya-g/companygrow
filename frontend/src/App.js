@@ -15,8 +15,8 @@ import CourseDetail from './pages/CourseDetail';
 import Projects from './pages/Projects';
 import Profile from './pages/Profile';
 import Analytics from './pages/Analytics';
-import Login from './pages/Login';
-import Register from './pages/Register';
+// import Login from './pages/Login'; // Replaced with AnimatedAuthPage
+// import Register from './pages/Register'; // Replaced with AnimatedAuthPage
 import Skills from './pages/Skills';
 import Badges from './pages/Badges';
 import Users from './pages/Users';
@@ -27,6 +27,7 @@ import ProjectAssignments from './pages/ProjectAssignments';
 import MyEnrollments from './pages/MyEnrollments';
 import CourseForm from './pages/CourseForm';
 import PublicProfile from './pages/PublicProfile';
+import AnimatedAuthPage from './pages/AnimatedAuthPage';
 
 // Loading component
 const LoadingSpinner = () => (
@@ -132,9 +133,9 @@ function PublicRoute({ children }) {
 // Main layout component
 function MainLayout({ children }) {
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="main-content-wrapper flex flex-col">
         <Navbar />
         <main className="flex-1 p-6">
           {children}
@@ -149,15 +150,20 @@ function AppContent() {
   return (
     <AuthWrapper>
       <Routes>
-        {/* Public Routes */}
+        {/* Public Routes - All use the new animated auth interface */}
         <Route path="/login" element={
           <PublicRoute>
-            <Login />
+            <AnimatedAuthPage />
           </PublicRoute>
         } />
         <Route path="/register" element={
           <PublicRoute>
-            <Register />
+            <AnimatedAuthPage />
+          </PublicRoute>
+        } />
+        <Route path="/auth" element={
+          <PublicRoute>
+            <AnimatedAuthPage />
           </PublicRoute>
         } />
 

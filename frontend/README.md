@@ -1,70 +1,164 @@
-# Getting Started with Create React App
+# 🚀 CompanyGrow - Smart Workforce Development Platform
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A comprehensive workforce development platform with gamification, skill tracking, and project management. Built with React and Node.js.
 
-## Available Scripts
+## ✨ Features
 
-In the project directory, you can run:
+- **Multi-role System**: Employee, Manager, Admin with role-based permissions
+- **Learning Management**: Course creation, enrollment, and progress tracking
+- **Gamification**: Badges, tokens, leaderboards, and achievements
+- **Project Management**: Skill-based project assignments and tracking
+- **Analytics**: Performance reviews and skills gap analysis
+- **Payment Integration**: Stripe-powered course payments
+- **Modern Auth**: Beautiful animated login/register interface
 
-### `npm start`
+## 🛠️ Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**Frontend**: React 19, Redux Toolkit, Tailwind CSS, Chart.js  
+**Backend**: Node.js, Express, PostgreSQL, Sequelize  
+**Additional**: JWT auth, Stripe payments, Cloudinary storage, WebSocket
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🚀 Quick Start
 
-### `npm test`
+### Prerequisites
+- Node.js 16+
+- PostgreSQL 12+
+- Stripe account (for payments)
+- Cloudinary account (for file storage)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 1. Clone & Install
+```bash
+git clone https://github.com/yourusername/companygrow.git
+cd companygrow
+npm run install:all
+```
 
-### `npm run build`
+### 2. Environment Setup
+Copy the environment templates and fill in your values:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+# Copy environment templates
+cp .env.example backend/.env
+cp frontend/.env.example frontend/.env
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# Edit the files with your actual values
+# backend/.env - Add your database, JWT, Stripe, and Cloudinary credentials
+# frontend/.env - Add your API URL and public keys
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 3. Database Setup
+```bash
+cd backend
 
-### `npm run eject`
+# Create database
+createdb companygrow_dev
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# Run migrations and seed data
+npm run db:reset
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 4. Start Development Servers
+```bash
+# From project root - starts both frontend and backend
+npm run dev
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+**Access the app:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+- **New Animated Auth**: http://localhost:3000/auth
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🔑 Demo Credentials
 
-## Learn More
+After seeding, use these test accounts:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+| Role | Email | Password |
+|------|--------|----------|
+| Admin | admin@companygrow.com | admin123 |
+| Employee | john.doe@companygrow.com | password123 |
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🎨 Authentication
 
-### Code Splitting
+The app now features a beautiful animated authentication interface at `/auth` with:
+- Sliding panel animations
+- Responsive design for mobile/desktop
+- Social media login buttons (placeholder)
+- Integrated demo account buttons
+- Modern gradient overlays and smooth transitions
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Regular login/register pages are still available at `/login` and `/register`.
 
-### Analyzing the Bundle Size
+## 🚨 Troubleshooting
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+**Database connection issues:**
+```bash
+# Make sure PostgreSQL is running
+sudo service postgresql start  # Linux
+brew services start postgresql  # macOS
+```
 
-### Making a Progressive Web App
+**Port conflicts:**
+- Change `PORT` in backend/.env
+- Change port in frontend/.env `REACT_APP_API_URL`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+**Migration errors:**
+```bash
+# Reset database
+dropdb companygrow_dev
+createdb companygrow_dev
+npm run db:migrate
+```
 
-### Advanced Configuration
+## 📁 Project Structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```
+companygrow/
+├── frontend/          # React app
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── AnimatedAuth.js    # New animated auth component
+│   │   ├── pages/
+│   │   │   └── AnimatedAuthPage.js # New auth page
+│   │   ├── store/     # Redux
+│   │   └── services/  # API calls
+│   └── .env.example
+├── backend/           # Express API
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   └── .env.example
+└── package.json       # Root workspace config
+```
 
-### Deployment
+## 🔧 Available Scripts
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```bash
+npm run dev              # Start both frontend and backend
+npm run dev:frontend     # Start only frontend
+npm run dev:backend      # Start only backend
+npm run install:all      # Install all dependencies
+npm run build           # Build frontend for production
+```
 
-### `npm run build` fails to minify
+## 📚 API Documentation
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Key endpoints:
+- `POST /api/auth/login` - Authentication
+- `GET /api/courses` - List courses
+- `POST /api/courseEnrollments` - Enroll in course
+- `GET /api/projects` - List projects
+- `GET /api/users/profile` - User profile
+
+## 🤝 Contributing
+
+1. Fork the repo
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push: `git push origin feature/amazing-feature`
+5. Open Pull Request
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+---
