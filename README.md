@@ -9,21 +9,19 @@ A comprehensive workforce development platform with gamification, skill tracking
 - **Gamification**: Badges, tokens, leaderboards, and achievements
 - **Project Management**: Skill-based project assignments and tracking
 - **Analytics**: Performance reviews and skills gap analysis
-- **Payment Integration**: Stripe-powered course payments
 
 ## 🛠️ Tech Stack
 
 **Frontend**: React 19, Redux Toolkit, Tailwind CSS, Chart.js  
 **Backend**: Node.js, Express, PostgreSQL, Sequelize  
-**Additional**: JWT auth, Stripe payments, Cloudinary storage, WebSocket
+**Additional**: JWT auth
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 16+
 - PostgreSQL 12+
-- Stripe account (for payments)
-- Cloudinary account (for file storage)
+
 
 ### 1. Clone & Install
 ```bash
